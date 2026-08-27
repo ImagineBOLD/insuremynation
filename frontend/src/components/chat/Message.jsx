@@ -1,4 +1,5 @@
 import { BLUE, DEEP } from '../../data/site';
+import { unwrapEmphasis } from './unwrapEmphasis';
 
 /**
  * One bubble. Assistant on the left with the brand mark, visitor on the right with a
@@ -6,10 +7,18 @@ import { BLUE, DEEP } from '../../data/site';
  *
  * `text` is rendered as text, never as markup: it is model output built from
  * retrieved document content, so treating it as HTML would be an injection path
- * straight through the knowledge base.
+ * straight through the knowledge base. `pre-wrap` keeps the model's own line
+ * breaks, which are deliberate.
+ *
+ * The one concession to markdown is `unwrapEmphasis`: the model writes `**Cover**`
+ * whatever the prompt says, and with no renderer the asterisks land on the screen.
+ * It removes paired delimiters and nothing else — no library, no HTML.
  */
 export default function Message({ role, text, streaming }) {
   const isUser = role === 'user';
+  // Only the assistant writes markdown at us. The visitor's own words are shown back exactly
+  // as they typed them.
+  const shown = isUser ? text : unwrapEmphasis(text);
 
   return (
     <div
@@ -42,7 +51,7 @@ export default function Message({ role, text, streaming }) {
             overflowWrap: 'anywhere',
           }}
         >
-          {text}
+          {shown}
           {streaming && !text && <TypingDots />}
         </div>
 

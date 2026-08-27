@@ -105,9 +105,11 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
 
-    <script id="google-recaptcha-js" src="https://www.google.com/recaptcha/api.js?render=6LerRCAlAAAAALgsqlGN1jkqqe3Db8ua6o-CEP3q&ver=3.0"></script>
-    <script id="wpcf7-recaptcha-js-extra">
-    var wpcf7_recaptcha = {"sitekey":"6LerRCAlAAAAALgsqlGN1jkqqe3Db8ua6o-CEP3q","actions":{"homepage":"homepage","contactform":"contactform"}};
-    </script>
+    <!-- The reCAPTCHA v3 loader and its wpcf7 config were removed. They came from the
+         WordPress original, where Contact Form 7 verified submissions; this build has no
+         CF7 form and nothing reads `grecaptcha` or `wpcf7_recaptcha`, so all the script did
+         was pin Google's floating badge to the bottom-right corner — the same corner as the
+         chat launcher, showing through behind the panel. If a form here ever needs
+         verification, load the script from that form, not from the page. -->
   </body>
 </html>

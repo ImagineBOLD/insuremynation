@@ -2,18 +2,22 @@
    Element styling stays inline in the components, matching the convention the rest
    of this codebase uses; only what inline styles cannot express lives here. */
 
-.imn-chat-launcher {
+.imn-chat-launcher,
+.imn-chat-call {
   transition:
     transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 0.24s ease;
 }
-.imn-chat-launcher:hover {
+.imn-chat-launcher:hover,
+.imn-chat-call:hover {
   transform: scale(1.06);
 }
-.imn-chat-launcher:active {
+.imn-chat-launcher:active,
+.imn-chat-call:active {
   transform: scale(0.97);
 }
 .imn-chat-launcher:focus-visible,
+.imn-chat-call:focus-visible,
 .imn-chat-send:focus-visible,
 .imn-chat-chip:focus-visible,
 .imn-chat-iconbtn:focus-visible,
@@ -186,7 +190,8 @@
 
   /* The launcher is fixed to the same corner, at the same z-index, painted after the
      panel — so while the panel is open it covers the send button. */
-  .imn-chat-launcher--open {
+  .imn-chat-launcher--open,
+  .imn-chat-call--open {
     display: none !important;
   }
 
@@ -205,9 +210,9 @@
     padding-bottom: 10px !important;
   }
 
-  /* Thumbs, not cursors: the list rows grow to a tappable height, and all options must
-     still fit on the sheet without scrolling — six rows at 36px is ~220px of an ~550px
-     sheet, which leaves the transcript dominant. */
+  /* Thumbs, not cursors: the list rows grow to a tappable height. They no longer have to
+     fit the sheet alongside the transcript — the list scrolls inside it — so 36px is a tap
+     target and nothing more. */
   .imn-chat-chip {
     min-height: 36px !important;
     padding: 8px 14px !important;
@@ -224,7 +229,7 @@
   .imn-chat-finished {
     padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
   }
-  .imn-chat-chips {
+  .imn-chat-scroll {
     padding-left: calc(16px + env(safe-area-inset-left)) !important;
     padding-right: calc(16px + env(safe-area-inset-right)) !important;
   }
@@ -254,11 +259,14 @@
   .imn-chat-dot {
     animation: none !important;
   }
-  .imn-chat-launcher {
+  .imn-chat-launcher,
+  .imn-chat-call {
     transition: none;
   }
   .imn-chat-launcher:hover,
-  .imn-chat-launcher:active {
+  .imn-chat-launcher:active,
+  .imn-chat-call:hover,
+  .imn-chat-call:active {
     transform: none;
   }
 }

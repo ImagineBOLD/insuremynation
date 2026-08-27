@@ -168,25 +168,29 @@ export default function ChatPanel({ chat, onClose }) {
 
         {error && <ErrorNotice error={error} onRetry={() => { clearError(); submit(error.retry); }} />}
 
-        {/* Inside the scroll area, unlike the chips, because it is tall. Pinned below the
-            transcript it would be clipped by the panel's overflow on a short screen — and
-            with nothing scrollable under the visitor's finger the gesture falls through to
-            the page behind, which reads as a form that cannot be scrolled. Here it scrolls
-            with the conversation, and the auto-scroll below brings it into view. */}
+        {/* Also inside the scroll area, and tall for the same reason: the home page opener
+            offers all six covers, which is a seven-row list around 200px. Pinned below the
+            transcript that came off a fixed-height panel and left the very message the
+            options answer squeezed into a sliver. Here it scrolls with the conversation and
+            the auto-scroll above keeps it in view, so the transcript keeps its height.
+            Hidden while an error is showing, so the retry link is the only thing to click.
+            Never the *only* way to answer: the composer stays available so a visitor can
+            type "we are four in Gurgaon" instead of picking from the list.
+            Two presentations, picked by how much space the options need: a short set stays
+            wrapped pills; a long set becomes one bordered group of radio-style rows. The
+            circle is decoration — a tap still submits the label as a message, so no second
+            confirm. */}
+        {chips && !error && <ChipRow chips={chips} pending={pending} onPick={submit} />}
+
+        {/* Inside the scroll area because it is tall. Pinned below the transcript it would
+            be clipped by the panel's overflow on a short screen — and with nothing
+            scrollable under the visitor's finger the gesture falls through to the page
+            behind, which reads as a form that cannot be scrolled. Here it scrolls with the
+            conversation, and the auto-scroll below brings it into view. */}
         {askingContact && !error && (
           <ContactForm disabled={pending} onSubmit={(text, extra) => submit(text, null, extra)} />
         )}
       </div>
-
-      {/* Hidden when the assistant has not offered a choice, and while an error is
-          showing so the retry link is the only thing to click. Never the *only* way to
-          answer: the composer stays available so a visitor can type "we are four in
-          Gurgaon" instead of picking from the list.
-          Two presentations, picked by how much space the options need: a short set stays
-          wrapped pills; a long set becomes one bordered group of radio-style rows, compact
-          enough that every option is visible without scrolling. The circle is decoration —
-          a tap still submits the label as a message, so no second confirm. */}
-      {chips && !error && <ChipRow chips={chips} pending={pending} onPick={submit} />}
 
       {finished ? (
         <FinishedNotice onReset={reset} />
@@ -247,7 +251,7 @@ function ChipRow({ chips, pending, onPick }) {
     return (
       <div
         className="imn-chat-chips"
-        style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '4px 16px 12px', flexShrink: 0 }}
+        style={{ display: 'flex', flexWrap: 'wrap', gap: 8, flexShrink: 0 }}
       >
         {all.map((chip) => (
           <button
@@ -286,7 +290,6 @@ function ChipRow({ chips, pending, onPick }) {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        margin: '4px 16px 12px',
         border: '1.5px solid rgba(0,74,173,0.22)',
         borderRadius: 12,
         overflow: 'hidden',

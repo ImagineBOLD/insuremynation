@@ -72,6 +72,54 @@ r = splitOptions('First:\n- a\n- b\n\nThen:\n- c\n- d');
 assert.deepEqual(r.options, ['c', 'd'], 'the last run wins');
 assert.ok(r.body.includes('- a') && r.body.includes('- b'), 'the earlier list stays as prose');
 
+// Indented dashes are nested facts, not choices. The bot writes plan comparisons this way,
+// and treating them as options both stole the chips and deleted the facts from the body —
+// the visitor was left with "Cover:" and nothing under it.
+const nested = ['Cover:', '   - Care Supreme includes AYUSH', '   - Aspire adds an OPD benefit'].join('\n');
+r = splitOptions(nested);
+assert.deepEqual(r.options, [], 'indented dashed lines are not options');
+assert.equal(r.body, nested, 'and the facts stay in the body, verbatim');
+
+// Tabs indent too.
+r = splitOptions('Cover:\n\t- one\n\t- two');
+assert.deepEqual(r.options, [], 'a tab-indented run is not a menu either');
+
+// Label-colon comparison lines, no dashes anywhere: straight through.
+const compare = [
+  'Care Supreme: room rent is uncapped, AYUSH included.',
+  'Aspire: adds an OPD benefit and a lower waiting period.',
+  'Optima Secure: doubles the sum insured from day one.',
+].join('\n');
+r = splitOptions(compare);
+assert.deepEqual(r.options, []);
+assert.equal(r.body, compare, 'a comparison passes through unchanged');
+
+// Trailing whitespace after a real option is still an option (80 counts the label only).
+r = splitOptions('Pick one:\n- Just me   \n- Me and my spouse\t');
+assert.deepEqual(r.options, ['Just me', 'Me and my spouse']);
+
+// An 80-character label is a chip; 81 is prose.
+r = splitOptions(`Pick one:\n- ${'x'.repeat(80)}\n- Just me`);
+assert.deepEqual(r.options, ['x'.repeat(80), 'Just me'], '80 characters still fits');
+r = splitOptions(`Pick one:\n- ${'x'.repeat(81)}\n- Just me`);
+assert.deepEqual(r.options, [], '81 breaks the run, leaving one option below the floor');
+
+// Dashes with nothing after them are not blank chips.
+r = splitOptions('Pick one:\n-   \n-\t');
+assert.deepEqual(r.options, []);
+
+// \r\n line endings: the CR must not end up inside the label.
+r = splitOptions('Pick one:\r\n- Just me\r\n- My parents\r\n');
+assert.deepEqual(r.options, ['Just me', 'My parents']);
+
+// A mid-line dash inside a chip label survives as part of the label, and the same string as
+// prose is not an option at all.
+r = splitOptions('Who is it for?\n- Family floater - me, spouse and kids\n- Just me');
+assert.deepEqual(r.options, ['Family floater - me, spouse and kids', 'Just me']);
+r = splitOptions('Family floater - me, spouse and kids');
+assert.deepEqual(r.options, [], 'a bare sentence with a dash is prose');
+assert.equal(r.body, 'Family floater - me, spouse and kids');
+
 // A plain answer with no options at all.
 r = splitOptions('Our office is in Connaught Place, New Delhi.');
 assert.deepEqual(r.options, []);

@@ -35,8 +35,11 @@ will 403 too.
 Everything here is on GitHub, `backend/` and the deploy files included. Upstream authors
 the site itself, so when pulling expect it to own `frontend/src/pages`,
 `frontend/src/data`, `frontend/src/styles` and `frontend/public`. The chat is ours and
-lives in `frontend/src/components/chat/`; `frontend/index.html` is byte-identical to
-upstream, and the only other local frontend edit is the `<ChatWidget/>` mount in `App.jsx`.
+lives in `frontend/src/components/chat/`. The only local edits outside that directory are the
+`<ChatWidget/>` mount in `App.jsx` and, in `frontend/index.html`, the **deleted reCAPTCHA v3
+loader** — a WordPress leftover for a Contact Form 7 form this build does not have, whose only
+effect was Google's floating badge in the bottom-right corner, behind the chat panel. Nothing
+reads `grecaptcha`. A pull that restores it brings the badge back; delete it again.
 
 ## Commands
 
@@ -52,14 +55,17 @@ node scripts/export-kb.mjs   # regenerate kb-corpus.txt from the site's own copy
 node scripts/check-split-options.mjs   # chat: the reply-to-chips parser
 node scripts/check-page-context.mjs    # chat: first-seen landed_from / referrer
 node scripts/check-contact-ask.mjs     # chat: spotting the contact turn
+node scripts/check-emphasis.mjs        # chat: unwrapping **bold**, keeping "T&C apply*"
 
 go build ./... && go vet ./... && go test ./...
 ```
 
-There is no lint or test framework in the frontend and it does not need one. The two
-`scripts/check-*.mjs` files are plain `node` + `assert` and cover the only two pieces of the
-chat client that fail *silently* — a broken parser just stops rendering chips, and broken
-attribution just reports nothing. Run them after touching either. Everything else in the
+There is no lint or test framework in the frontend and it does not need one. The
+`scripts/check-*.mjs` files are plain `node` + `assert` and cover the pieces of the
+chat client that fail *silently* — a broken parser stops rendering chips (or worse, eats the
+text it mistook for a menu), broken attribution reports nothing, a reworded contact turn
+loses the form, and a broken emphasis unwrap leaks asterisks or swallows a footnote marker.
+Run them after touching any of it. Everything else in the
 frontend is verified visually; the backend has build, vet and test.
 
 ## The frontend
@@ -139,7 +145,8 @@ What is left, and what each piece is for:
 | --- | --- |
 | `useHeadlessChat.js` | the three-endpoint client: sessions, turns, errors, terminal state |
 | `pageContext.js` | the `context_variables` that decide where the funnel opens, and the attribution |
-| `splitOptions.js` | turns the `- ` lines of a reply into chips |
+| `splitOptions.js` | turns the column-0 `- ` lines of a reply into chips |
+| `unwrapEmphasis.js` | drops paired `**`/`__` so the bubble does not show asterisks |
 | `contactAsk.js` / `ContactForm.jsx` / `countries.js` | the contact turn as fields instead of a paragraph |
 | `ChatPanel.jsx` / `Message.jsx` | the panel, per the WhatsApp-style design |
 | `ChatWidget.jsx` | launcher, open/close, Escape |
@@ -155,7 +162,10 @@ Six things that are easy to get wrong:
   read live, the UTMs are already gone and the attribution is empty on exactly the journeys
   worth measuring. `node scripts/check-page-context.mjs` covers it.
 - **Chips are parsed out of the reply** (`splitOptions.js`), from the last contiguous run of
-  `- ` lines. The integration guide's own version of that parser walks up from the final line
+  `- ` lines **at column 0**. Indentation is the test that separates a menu from a nested
+  fact: the bot writes plan comparisons as a `Cover:` line with indented dashes under it, and
+  while the parser accepted those, every fact became a chip *and* was cut from the body — the
+  visitor got a bare label. The integration guide's own version of that parser walks up from the final line
   and stops at the first non-option — which finds nothing, because the live opener ends with
   a line of prose *after* the list. `node scripts/check-split-options.mjs` pins the real
   shape. But when a response carries a populated `options` array, **those win and the
@@ -171,7 +181,13 @@ Six things that are easy to get wrong:
   deleted their side, so sending into it opens a *second* conversation — and since a
   conversation ends in a lead, that is a duplicate in the CRM.
 - **`Message.jsx` renders text as a child, never `innerHTML`**, with `pre-wrap`: replies carry
-  newlines and are explicitly not markdown, so nothing must run them through a renderer.
+  newlines and are explicitly not markdown, so nothing must run them through a renderer. The
+  model writes `**Cover**` regardless of what the prompt forbids, so `unwrapEmphasis.js`
+  strips **paired** `**`/`__` before rendering — paired only, because insurance copy ends with
+  a footnote marker ("T&C apply\*") that has to survive. Do **not** reach for a markdown
+  library instead: besides the dependency, it would render the `- ` lines as an HTML list and
+  `splitOptions` would never see them again. The transform runs on assistant text only; the
+  visitor's own words are echoed exactly as typed.
 
 **Never add a *second* ask for contact details.** Their assistant collects name, mobile and
 email itself, two turns in, and that lead is theirs. What the panel does have is a form that

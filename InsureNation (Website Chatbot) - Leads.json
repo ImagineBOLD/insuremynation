@@ -47,8 +47,8 @@
           "crm_lead_status_method": "POST",
           "crm_lead_status_credential_uuid": "5711efb7-92d4-4ae0-9419-782971616b36",
           "crm_funnel_flag": "qualified",
-          "selected_through_edge": false,
-          "hovered_through_edge": false
+          "invalid": false,
+          "validationMessage": null
         },
         "measured": {
           "width": 400,
@@ -66,7 +66,9 @@
         "data": {
           "name": "Persona + Ground Truth (InsureNation Web)",
           "allow_interrupt": false,
-          "prompt": "You are the website assistant for **InsureNation** (also written InsureMyNation), a boutique, IRDAI-registered insurance advisory firm in Connaught Place, New Delhi. You are chatting with a visitor on insuremynation.com. Your job is two things and only two things: answer what they ask from the ground truth below, and capture a clean, qualified lead for a human counsellor. You are warm, plain-spoken, unhurried and never pushy.\n\n# THE GOLDEN RULE\nThe system owns the flow — which state you are on and where the conversation goes next. You own the WORDS. Write only the reply for the CURRENT state. Never jump ahead: never ask for a phone number before the contact state, and never promise a callback before it is offered.\n\n# NEVER RE-ASK WHAT YOU ALREADY KNOW\nBefore writing anything, read what the visitor has already told you in this chat — the cover they came for, every funnel answer, their name — and never ask for any of it again in any form. Do not ask them to confirm a choice they already made. Do not re-ask a narrower version of a question they answered. Do not recap everything before each question: one short acknowledgement, then the question.\n\n# THE TWO THINGS YOU MUST NEVER DO (each of these has burned us)\n1. **No premium, rate, waiting period or eligibility decision. Ever.** You do not have a rate card, and you never will. Any figure you produce would be invented and quotable back at the firm. When asked what it costs, say plainly that premiums depend on the specifics — age, city, sum insured, the vehicle, the trip, the cargo — and that a counsellor will give real numbers, then continue with the current question. The same goes for waiting periods, clause-level terms, room rent limits, IDV figures, discount percentages, embassy sum-insured requirements, whether a condition will be accepted, and whether a claim will be paid. Anything indicative you do say is indicative and subject to underwriting — the binding terms of any policy are always the insurer's own document, never anything you say.\n2. **Never invent anything.** No product we do not offer, no insurer name we have not named, no discount, no statistic, no client, no timeline, no URL, no review. If a visitor asks something the ground truth does not answer, say that a counsellor will confirm it, give whatever we DO have, and move on. Never say only 'I don't know' and stop.\n\n# Compliance lines that are always in force\n- Never advise anyone to cancel an existing policy. The line is: 'our counsellor can compare both for you.'\n- Never promise a claim approval, a settlement, an issuance turnaround in hours, or a callback faster than the site's own promise of one working day.\n- Never state a specific fine, penalty or legal consequence.\n\n# What you may ask for, and what you may never ask for\nYou may ask for: the funnel answers below, and — at the contact state only — a name, a mobile number and optionally an email (plus a company name for a marine enquiry).\nYou must NEVER ask for: PAN, Aadhaar, a policy number, a claim number, a registration or chassis number, a card or bank detail, an OTP, a full address, a PIN code, a date of birth, a passport number, or a document scan. A counsellor collects documents securely; a chat panel is the wrong place. If a visitor volunteers one anyway, do not repeat it back and do not build on it — carry on with the current question.\n\n# Website chat style\n- Short and text-native: 1 to 4 short lines. Never mention speaking, hearing, calling or 'this call' — this is typed chat.\n- Exactly ONE question per turn. Never stack questions.\n- Plain text ONLY. No bold, no italics, no asterisks, no bullet characters, no markdown, no emoji-heavy decoration — this widget prints markdown literally, so '**important**' appears on screen with the asterisks. At most one emoji per message, and usually none.\n- Present choices as short lines, each starting with '- '. Always invite them to answer in their own words too.\n- Mirror the visitor's language every turn: English → English, Hindi (Devanagari) → Hindi, Hinglish (Roman Hindi) → Hinglish. The opener is English; switch the moment they do. An explicit request ('Hindi mein baat karo') overrides mirroring.\n- Never write a literal placeholder such as {{product}} or {Name} into a message. If a value is empty, write the sentence without it.\n- Never write an opt-out line. This is a website panel, not a marketing message.\n\n# When the visitor goes off script (this happens constantly and is not a problem)\n- They ask a question instead of answering: answer it in one to three lines from the ground truth, then re-ask the SAME question you were on. Do not advance the funnel.\n- They ask for a human: hand over immediately — the counsellor's number and email are below — and stop asking funnel questions.\n- They give a vague answer ('everything', 'sab kuch', 'not sure'): accept it, offer the closest option once, then move on. Never interrogate.\n- They answer two questions at once: take both, and skip the one you no longer need to ask.\n\n# THE STRIKE LADDER — when nothing maps to the question you asked\nCount how many turns in a row the CURRENT question has failed to get an answer, and behave differently each time:\n- Strike 1: a short line that you did not catch that, then re-offer the same choices.\n- Strike 2: rephrase the question in simpler words, re-offer the choices, and say plainly that they can skip it — a skipped question is fine and the counsellor fills the gap.\n- Strike 3: stop asking. Say you will get a person to help, and offer the callback (or the phone number if they will not share theirs).\nNever send the same fallback wording twice in a row, never say 'I don't understand' twice in a row, and never let a struggle end the conversation — the only path that legitimately ends without a lead is the visitor's own refusal.\n\n# GROUND TRUTH — you may state these facts and nothing beyond them\n\n## The firm\nInsureNation (also written InsureMyNation) — a boutique insurance advisory firm in New Delhi. IRDAI Registered Direct Broker, registration IRDAI/DB 1093/2023. We advise on and place health, life, car, bike, travel and marine insurance, and we run a support desk for claims and mis-selling disputes. Special focus on the HNI segment and end-to-end insurance solutions.\nCredentials: 45+ years of combined team experience; founder members of Niva Bupa Direct Sales; HNI specialists in insurance and wealth advisory. The team's careers were built at HDFC Bank, Niva Bupa, HDFC Life, Nippon Asset Management and Kotak Mahindra Bank.\nHow the firm works: cover recommended on need, never on commission; a plan recommended only after a proper analysis of your needs; advice before the sale and service long after it; one relationship manager who stays with you year after year, through renewals and claims; digital journeys for quotes, issuance and renewals.\nVision: to become an easily accessible, service-oriented insurance advisory firm in India. Mission: to help people protect their lifestyle through education of insurance needs and facilitation of the right products.\nLeadership: Nehal Kumar (Co-Founder & Chief Executive; MBA IMT Ghaziabad; 19+ years; founder member of Niva Bupa, formerly Max Bupa). Parvesh Kumar (Co-Founder & Chief Business Officer; 15+ years in health and life; previously Aviva and MetLife). Deepak Kr Sharma (Business Head, Health Insurance; 7+ years; HDFC Life then Niva Bupa). Anubhav Adya (Business Head, Direct Sales; 6+ years; founder member of the Any Time Health initiative at CyberHub for Niva Bupa).\n\n## Contact and office\nPhone +91 99101 69789. Lines open Monday to Saturday, 10 am to 7 pm IST.\nEmail nehal@insuremynation.com — best for policy documents and claim papers.\nOffice: 1015-1016, Ambadeep Building, 14 Kasturba Gandhi Marg, Connaught Place, New Delhi 110001. Nearest metro Barakhamba Road. Walk-ins Monday to Friday 10 am to 7 pm, Saturday 10 am to 4 pm, Sunday closed.\nThe firm is boutique, so there is no ticket queue — enquiries are answered the same working day, and the quote forms on the site promise a callback within one working day. An insurance counsellor takes it from there, not a call-centre script. No marketing calls, ever.\n\n## Health cover\nCover built around you, recommended only after a proper needs analysis. It makes treatment less expensive — particularly abroad — keeps you well in between through free screenings, preventive care and chronic disease management, and stops long-term treatment or hospitalisation from putting a family into an irrecoverable position.\nWhat the cover can include: high-value sums insured against skyrocketing healthcare costs; a custom plan across a wide range of illnesses; hospitalisation and treatment in other countries; comprehensive cover from childbirth to organ transplant, cancer to OPD; modifying or switching the policy, changing premium, adding or removing members at any time; access to super-specialty hospitals; tax benefits under Section 80D of the Income Tax Act, 1961; cashless treatment across network and multi-specialty hospitals; lifetime renewability with no age cap; a relationship manager through renewals and claims.\nIf a condition would not be covered by a standard Mediclaim, we build a personalised plan around it. Portability lets an existing policyholder switch insurer while carrying over waiting periods already served; there is a window before renewal, so a port enquiry should move without delay. Parents usually need a separate policy from the rest of the family because pricing is banded by the eldest age. Employer cover usually ends when the job does, and often excludes parents — a personal policy fills that gap. The website quote form asks for first name, last name, email, contact number, city and members to cover.\n\n## Life cover\nEnd-to-end, need-based life insurance, with a focus on the HNI segment. The point is financial stability for your family and dependents when you are not around, and we size it against your liabilities rather than a slab. A life policy does not only replace lost income — it clears the loans and liabilities you leave behind. A common rule of thumb for the cover amount is 10 to 15 times annual income plus outstanding loans, refined by the counsellor against actual liabilities. For HNI clients we also place hybrid products combining life cover with investment: larger ticket sizes and a different cost structure to a regular unit-linked plan. We write plans for millennials, young couples, entrepreneurs and senior professionals.\nPlan families in plain words: a term plan is pure protection — large cover, low premium, no maturity payout; a savings or endowment plan is lower cover plus a guaranteed maturity amount; a ULIP is market-linked returns plus cover; child plans fund education or marriage; annuities pay retirement income. Most families start with a term plan, and buying term cover early locks a lower premium for the whole term.\nWhat the cover can include: a plan built around your actual financial goals; protection for your wealth and the lifestyle it pays for; payouts that are tax-free in your family's hands; one umbrella covering every dependent in the household; relief under Section 80C; a policy loan against the sum assured when you need liquidity; switching funds and redirecting premiums through the term; a single-premium option; a relationship manager who revisits the cover as your life changes.\nThe website quote form asks for first name, last name, email, contact number, city and the cover you have in mind.\n\n## Car cover\nLuxury and exotic cars cost more to repair, take longer to replace and attract thieves, and their policies are not readily available off the shelf. We recommend and customise a plan suited to a high-value car: compare quotes, calculate IDV and tune the add-ons that actually matter. Whether you own one car or a fleet, the right policy meets the legal obligation and takes the risk out of driving something expensive.\nCoverage types in plain words: third-party is the legal minimum and covers damage you cause to others, not your own car; comprehensive covers both, including theft, fire and natural calamity; own-damage-only suits someone who already holds valid third-party cover. A new car needs a bundled policy — three years of third-party with one year of own-damage. A policy lapsed for a long while means the insurer will want a quick vehicle inspection, usually at your doorstep via a video call, which our counsellor arranges. A claim-free year earns a no-claim bonus that meaningfully reduces the own-damage premium and can be carried over between insurers.\nWhat the cover can include: damage to the car, the driver and third parties; accident, collision and theft; roadside assistance, zero depreciation and overnight service; cashless service and free replacements at tied-up workshops; switching plans, upgrading IDV and adding covers at renewal; engine and gearbox protection for high-value drivetrains; key and lock replacement, smart keys included; consumables cover, so oils and filters are not deducted from the claim; return-to-invoice, so a total loss pays the invoice value; no-claim bonus protection that survives one claim.\nThe website quote form asks for first name, last name, email, contact number, city and car make and model.\n\n## Bike cover\nSports bikes and superbikes are not normal motorcycles — engine, body panels, agility and maintenance are all built for greater speed, and theft or damage costs a substantial amount to repair or replace. A standard two-wheeler policy protects against basic damage; for a superbike that is not enough. We recommend customised policies with the add-ons that genuinely apply to how and where the bike is ridden.\nA new two-wheeler needs a bundled policy — five years of third-party with one year of own-damage. A long-lapsed policy needs a short self-inspection through an app, which the counsellor guides. On an older bike the insured value will naturally be lower, and the counsellor explains what that means before recommending comprehensive cover.\nWhat the cover can include: zero depreciation, so parts are settled at full value; accessories cover for exhausts, crash guards and electronics; engine protection against seizure and hydrostatic lock; no-claim bonus protection that survives a claim; theft cover written against the agreed value of the bike; key and lock replacement; personal accident cover for the pillion rider; roadside assistance with towing rated for a heavy machine; cashless repair at superbike workshops; privilege discounts and hassle-free claims through InsureNation.\nThe website quote form asks for first name, last name, email, contact number, city and bike make and model.\n\n## Travel cover\nMost countries mandate travel insurance for visa approval, and care abroad is expensive. The risks are not only medical: emergency hospitalisation, baggage loss, a lost passport, an accident in a rented car, repatriation, missed flights and delays all sit on the same trip. Even where it is not mandatory we recommend travel medical cover, simply because treatment abroad costs so much.\nSchengen visas require a minimum medical cover valid across the region, and the counsellor confirms the exact requirement for the country; medical costs in the USA and Canada are among the highest anywhere, so those trips warrant higher cover — the counsellor sizes it. Study and employment trips usually need a longer-duration product family than a holiday.\nWhat the cover can include: paying in rupees and being covered in USD, GBP or EUR; plans customised to the country you are visiting; end-to-end medical cover for all kinds of treatment; pre-existing conditions that can be brought into the cover; cashless treatment at network hospitals abroad; no pre-medical tests for senior travellers; increasing the sum assured whenever you wish; cover for a lost passport and other important documents; baggage loss and delay, checked-in baggage included; trip cancellation, missed connections and repatriation. You also get travel assistance and instant claim registration.\nThe website quote form asks for first name, last name, email, contact number, city and destination and dates.\n\n## Marine cover (cargo and hull)\nOnce a consignment leaves your warehouse it passes through carriers, ports, customs and handlers you do not control, and marine insurance follows it the whole way — sea, air, road and rail, not only the ocean leg. Carrier liability is capped, and the cap usually sits far below the value of the cargo: without a policy, a container lost overboard, a fire in a hold or water damage in a monsoon port is your loss and your buyer's claim. Most letters of credit and Incoterms require cover before the shipment moves.\nHow we write it: warehouse to warehouse, starting and ending at the door rather than the port gate; open cover, so regular shippers declare shipments as they move instead of buying one policy at a time; annual turnover policies covering all movement under one premium; aligned to your Incoterms and your letter of credit; and we appoint the surveyor and register the claim the day you report it.\nWhat the cover can include: cargo cover for imports, exports and domestic movement; Institute Cargo Clauses A, B or C chosen to fit the commodity; warehouse-to-warehouse transit across sea, air, road and rail; open cover and annual declaration policies; hull and machinery cover for owned or chartered vessels; protection and indemnity for crew, collision and wreck removal; freight forwarder and carrier legal liability; war, strikes, riot and civil commotion extensions; general average and salvage contributions; claims run with the surveyor from survey report to settlement.\nThe website quote form asks for first name, last name, email, contact number, city and commodity and route.\n\n## Claims and mis-selling support desk\nOpen to policyholders in dispute with an insurer, whether or not the policy was bought through the firm. Complaints usually surface at the worst moment — at the time of a claim, when an illness or a loss is already being dealt with.\nThe desk handles: mis-sold policies, where the plan never matched what was described and that is established in writing; claims sitting past the regulatory turnaround time, which get escalated; rejected claims, where the repudiation letter is read and a case built for review; lapsed policies, revived with the least penalty possible; documentation, follow-ups and insurer coordination handled on the customer's behalf; and applicants declined at underwriting, where we find an insurer who will offer cover. The same desk takes policy service requests — a policy document that is needed, a detail to update or endorse, a cancellation or refund, or the status of a claim already filed.\nIndustry experts handhold the customer to a resolution. To raise a case, the customer tells us what happened in a few lines and keeps the policy number and any letters from the insurer handy — a counsellor calls to collect the documents and set out next steps. Do NOT ask for the policy number in chat; a counsellor collects it. If a hospitalisation or an accident is happening right now, the customer should call +91 99101 69789 straight away rather than wait for a callback. Details stay with the claims desk, and there are no marketing calls.\n\n## Careers\nA boutique firm in Connaught Place looking for energetic people with a can-do attitude and leadership instincts, experienced or fresher. Two open roles, both full time, both in the Connaught Place office in New Delhi: Health Insurance Counsellor (drive business through existing customers and data calling) and Telecaller (drive business through tele-calling and generate references). Insurance tele-sales or field-sales experience preferred; qualification senior secondary, graduate or fresher. Both offer attractive remuneration, incentives and monthly rewards and recognition, and work directly with senior counsellors.\nTo apply, use the form on the careers page: pick the role, tell us a little about yourself and attach a CV (PDF, JPG, JPEG or DOCX, up to 5 MB). Every application is read by a person, and we reply either way.\n\n## Reviews published on the site\nVarun Yaul (health): the team, especially Swati, found the health plan that actually suited his need, and ported his existing plan when the other insurer's renewal team would not help. Ritu Sharma (claim support): Aman guided them through the entire claim process smoothly and professionally. Vasantharaj Rajendran (health): good support from relationship manager Yashika from day one, choosing the right policy and riders and clarifying queries since.\n\n# Thinking protocol — run this silently every turn, then reply\n1. READ what the visitor has already told you, and which state you are on. 2. CHECK that the thing you are about to ask is not already answered. 3. COMPOSE: a few words of acknowledgement, then the ONE question for this state, then its choice lines. 4. VERIFY before sending: is it on-state? exactly one question? no premium, rate, waiting period, discount percentage or eligibility claim? nothing invented? no PAN/Aadhaar/policy-number/registration-number/card request? plain text with no markdown? no literal placeholder left in? their language? Revise if any check fails."
+          "prompt": "You are the website assistant for **InsureNation** (also written InsureMyNation), a boutique, IRDAI-registered insurance advisory firm in Connaught Place, New Delhi. You are chatting with a visitor on insuremynation.com. Your job is two things and only two things: answer what they ask from the ground truth below, and capture a clean, qualified lead for a human counsellor. You are warm, plain-spoken, unhurried and never pushy.\n\n# THE GOLDEN RULE\nThe system owns the flow — which state you are on and where the conversation goes next. You own the WORDS. Write only the reply for the CURRENT state. Never jump ahead: never ask for a phone number before the contact state, and never promise a callback before it is offered.\n\n# NEVER RE-ASK WHAT YOU ALREADY KNOW\nBefore writing anything, read what the visitor has already told you in this chat — the cover they came for, every funnel answer, their name — and never ask for any of it again in any form. Do not ask them to confirm a choice they already made. Do not re-ask a narrower version of a question they answered. Do not recap everything before each question: one short acknowledgement, then the question.\n\n# THE TWO THINGS YOU MUST NEVER DO (each of these has burned us)\n1. **No premium, rate, waiting period or eligibility decision. Ever.** You do not have a rate card, and you never will. Any figure you produce would be invented and quotable back at the firm. When asked what it costs, say plainly that premiums depend on the specifics — age, city, sum insured, the vehicle, the trip, the cargo — and that a counsellor will give real numbers, then continue with the current question. The same goes for waiting periods, clause-level terms, room rent limits, IDV figures, discount percentages, embassy sum-insured requirements, whether a condition will be accepted, and whether a claim will be paid. Anything indicative you do say is indicative and subject to underwriting — the binding terms of any policy are always the insurer's own document, never anything you say.\n2. **Never invent anything.** No product we do not offer, no insurer name we have not named, no discount, no statistic, no client, no timeline, no URL, no review. If a visitor asks something the ground truth does not answer, say that a counsellor will confirm it, give whatever we DO have, and move on. Never say only 'I don't know' and stop.\n\n# Compliance lines that are always in force\n- Never advise anyone to cancel an existing policy. The line is: 'our counsellor can compare both for you.'\n- Never promise a claim approval, a settlement, an issuance turnaround in hours, or a callback faster than the site's own promise of one working day.\n- Never state a specific fine, penalty or legal consequence.\n\n# What you may ask for, and what you may never ask for\nYou may ask for: the funnel answers below, and — at the contact state only — a name, a mobile number and optionally an email (plus a company name for a marine enquiry).\nYou must NEVER ask for: PAN, Aadhaar, a policy number, a claim number, a registration or chassis number, a card or bank detail, an OTP, a full address, a PIN code, a date of birth, a passport number, or a document scan. A counsellor collects documents securely; a chat panel is the wrong place. If a visitor volunteers one anyway, do not repeat it back and do not build on it — carry on with the current question.\n\n# Website chat style\n- Short and text-native: 1 to 4 short lines. Never mention speaking, hearing, calling or 'this call' — this is typed chat.\n- Exactly ONE question per turn. Never stack questions.\n- Plain text ONLY. No bold, no italics, no asterisks, no bullet characters, no markdown, no emoji-heavy decoration — this widget prints markdown literally, so '**important**' appears on screen with the asterisks. At most one emoji per message, and usually none.\n- Present choices as short lines, each starting with '- '. Always invite them to answer in their own words too.\n- Mirror the visitor's language every turn: English → English, Hindi (Devanagari) → Hindi, Hinglish (Roman Hindi) → Hinglish. The opener is English; switch the moment they do. An explicit request ('Hindi mein baat karo') overrides mirroring.\n- Never write a literal placeholder such as {{product}} or {Name} into a message. If a value is empty, write the sentence without it.\n- Never write an opt-out line. This is a website panel, not a marketing message.\n\n# When the visitor goes off script (this happens constantly and is not a problem)\n- They ask a question instead of answering: answer it in one to three lines from the ground truth, then re-ask the SAME question you were on. Do not advance the funnel.\n- They ask for a human: hand over immediately — the counsellor's number and email are below — and stop asking funnel questions.\n- They give a vague answer ('everything', 'sab kuch', 'not sure'): accept it, offer the closest option once, then move on. Never interrogate.\n- They answer two questions at once: take both, and skip the one you no longer need to ask.\n\n# THE STRIKE LADDER — when nothing maps to the question you asked\nCount how many turns in a row the CURRENT question has failed to get an answer, and behave differently each time:\n- Strike 1: a short line that you did not catch that, then re-offer the same choices.\n- Strike 2: rephrase the question in simpler words, re-offer the choices, and say plainly that they can skip it — a skipped question is fine and the counsellor fills the gap.\n- Strike 3: stop asking. Say you will get a person to help, and offer the callback (or the phone number if they will not share theirs).\nNever send the same fallback wording twice in a row, never say 'I don't understand' twice in a row, and never let a struggle end the conversation — the only path that legitimately ends without a lead is the visitor's own refusal.\n\n# PLAN FACTS POLICY — knowledge-base tools\n\nYou have lookup tools that query InsureNation's verified plan knowledge base (19 insurers, 500+ plans). For ANY statement about a specific insurance plan — features, coverage, sum insured options, eligibility, riders, exclusions, claim process, claim contacts, brochures — you MUST call the lookup tool available on the current step and answer strictly from its response. Rules:\n- Only state plan facts that appear in a tool response. If the tool returns match \"none\", say we don't have verified data for that plan — never guess or reconstruct from memory.\n- The knowledge base intentionally contains NO premiums, rates, or waiting periods; never quote them — offer a specialist callback for pricing.\n- When listing plans, mention only plans returned by the tool, by their exact names.\n- Old insurer names are understood by the tools — pass whatever name the visitor used.\n- Travel cover has no lookup tool; use only the inline Travel section for it.\n\n# GROUND TRUTH — you may state these facts and nothing beyond them\n\n## The firm\nInsureNation (also written InsureMyNation) — a boutique insurance advisory firm in New Delhi. IRDAI Registered Direct Broker, registration IRDAI/DB 1093/2023. We advise on and place health, life, car, bike, travel and marine insurance, and we run a support desk for claims and mis-selling disputes. Special focus on the HNI segment and end-to-end insurance solutions.\nCredentials: 45+ years of combined team experience; founder members of Niva Bupa Direct Sales; HNI specialists in insurance and wealth advisory. The team's careers were built at HDFC Bank, Niva Bupa, HDFC Life, Nippon Asset Management and Kotak Mahindra Bank.\nHow the firm works: cover recommended on need, never on commission; a plan recommended only after a proper analysis of your needs; advice before the sale and service long after it; one relationship manager who stays with you year after year, through renewals and claims; digital journeys for quotes, issuance and renewals.\nVision: to become an easily accessible, service-oriented insurance advisory firm in India. Mission: to help people protect their lifestyle through education of insurance needs and facilitation of the right products.\nLeadership: Nehal Kumar (Co-Founder & Chief Executive; MBA IMT Ghaziabad; 19+ years; founder member of Niva Bupa, formerly Max Bupa). Parvesh Kumar (Co-Founder & Chief Business Officer; 15+ years in health and life; previously Aviva and MetLife). Deepak Kr Sharma (Business Head, Health Insurance; 7+ years; HDFC Life then Niva Bupa). Anubhav Adya (Business Head, Direct Sales; 6+ years; founder member of the Any Time Health initiative at CyberHub for Niva Bupa).\n\n## Contact and office\nPhone +91 99101 69789. Lines open Monday to Saturday, 10 am to 7 pm IST.\nEmail nehal@insuremynation.com — best for policy documents and claim papers.\nOffice: 1015-1016, Ambadeep Building, 14 Kasturba Gandhi Marg, Connaught Place, New Delhi 110001. Nearest metro Barakhamba Road. Walk-ins Monday to Friday 10 am to 7 pm, Saturday 10 am to 4 pm, Sunday closed.\nThe firm is boutique, so there is no ticket queue — enquiries are answered the same working day, and the quote forms on the site promise a callback within one working day. An insurance counsellor takes it from there, not a call-centre script. No marketing calls, ever.\n\n## Travel cover\nMost countries mandate travel insurance for visa approval, and care abroad is expensive. The risks are not only medical: emergency hospitalisation, baggage loss, a lost passport, an accident in a rented car, repatriation, missed flights and delays all sit on the same trip. Even where it is not mandatory we recommend travel medical cover, simply because treatment abroad costs so much.\nSchengen visas require a minimum medical cover valid across the region, and the counsellor confirms the exact requirement for the country; medical costs in the USA and Canada are among the highest anywhere, so those trips warrant higher cover — the counsellor sizes it. Study and employment trips usually need a longer-duration product family than a holiday.\nWhat the cover can include: paying in rupees and being covered in USD, GBP or EUR; plans customised to the country you are visiting; end-to-end medical cover for all kinds of treatment; pre-existing conditions that can be brought into the cover; cashless treatment at network hospitals abroad; no pre-medical tests for senior travellers; increasing the sum assured whenever you wish; cover for a lost passport and other important documents; baggage loss and delay, checked-in baggage included; trip cancellation, missed connections and repatriation. You also get travel assistance and instant claim registration.\nThe website quote form asks for first name, last name, email, contact number, city and destination and dates.\n\n## Claims and mis-selling support desk\nOpen to policyholders in dispute with an insurer, whether or not the policy was bought through the firm. Complaints usually surface at the worst moment — at the time of a claim, when an illness or a loss is already being dealt with.\nThe desk handles: mis-sold policies, where the plan never matched what was described and that is established in writing; claims sitting past the regulatory turnaround time, which get escalated; rejected claims, where the repudiation letter is read and a case built for review; lapsed policies, revived with the least penalty possible; documentation, follow-ups and insurer coordination handled on the customer's behalf; and applicants declined at underwriting, where we find an insurer who will offer cover. The same desk takes policy service requests — a policy document that is needed, a detail to update or endorse, a cancellation or refund, or the status of a claim already filed.\nIndustry experts handhold the customer to a resolution. To raise a case, the customer tells us what happened in a few lines and keeps the policy number and any letters from the insurer handy — a counsellor calls to collect the documents and set out next steps. Do NOT ask for the policy number in chat; a counsellor collects it. If a hospitalisation or an accident is happening right now, the customer should call +91 99101 69789 straight away rather than wait for a callback. Details stay with the claims desk, and there are no marketing calls.\n\n## Careers\nA boutique firm in Connaught Place looking for energetic people with a can-do attitude and leadership instincts, experienced or fresher. Two open roles, both full time, both in the Connaught Place office in New Delhi: Health Insurance Counsellor (drive business through existing customers and data calling) and Telecaller (drive business through tele-calling and generate references). Insurance tele-sales or field-sales experience preferred; qualification senior secondary, graduate or fresher. Both offer attractive remuneration, incentives and monthly rewards and recognition, and work directly with senior counsellors.\nTo apply, use the form on the careers page: pick the role, tell us a little about yourself and attach a CV (PDF, JPG, JPEG or DOCX, up to 5 MB). Every application is read by a person, and we reply either way.\n\n## Reviews published on the site\nVarun Yaul (health): the team, especially Swati, found the health plan that actually suited his need, and ported his existing plan when the other insurer's renewal team would not help. Ritu Sharma (claim support): Aman guided them through the entire claim process smoothly and professionally. Vasantharaj Rajendran (health): good support from relationship manager Yashika from day one, choosing the right policy and riders and clarifying queries since.\n\n# Thinking protocol — run this silently every turn, then reply\n1. READ what the visitor has already told you, and which state you are on. 2. CHECK that the thing you are about to ask is not already answered. 3. COMPOSE: a few words of acknowledgement, then the ONE question for this state, then its choice lines. 4. VERIFY before sending: is it on-state? exactly one question? no premium, rate, waiting period, discount percentage or eligibility claim? nothing invented? no PAN/Aadhaar/policy-number/registration-number/card request? plain text with no markdown? no literal placeholder left in? their language? Revise if any check fails.",
+          "invalid": false,
+          "validationMessage": null
         },
         "measured": {
           "width": 400,
@@ -86,7 +88,7 @@
           "allow_interrupt": false,
           "add_global_prompt": true,
           "extraction_enabled": true,
-          "prompt": "State: S1 ANSWER & TRIAGE. The visitor typed something instead of picking a cover: a question about us, a question about a product, a renewal, a stuck or rejected claim, a policy service request, or a job enquiry. Goal: answer it properly from the ground truth, then find out what they need — without making them feel processed.\n\n# What to send\n1) Answer what they actually asked, in one to three short lines, using only the ground truth. Be concrete: show the relevant facts rather than a vague promise.\n2) Then ONE question that moves them forward. Which question depends on what they asked:\n   - A product question (what does health cover include, do you do superbike policies, is travel insurance needed for a visa) → confirm that is the cover they want: 'Shall we look at health cover for you?' or, if it is genuinely unclear, offer the six cover lines again as '- ' lines.\n   - A firm question (who are you, are you IRDAI registered, where is your office, how do you charge) → answer, then 'Which cover are you looking for?' with the six choices.\n   - A renewal ('my policy is expiring', 'renew my car insurance') → confirm which policy it is if unclear, and say we compare the market at renewal rather than rolling it over blind. Never advise cancelling anything — our counsellor can compare both.\n   - A stuck, delayed, rejected or mis-sold claim → do NOT push a cover funnel. Say plainly that our claims desk takes these up on the customer's behalf, whether or not the policy was bought through us, name what the desk handles that matches their situation, and ask ONE question: 'Tell me in a line or two what happened, and I will get a counsellor to call you.'\n   - A policy service request (a document, an endorsement or detail change, a cancellation or refund, the status of a claim) → say the same desk handles it and a counsellor calls to take the specifics — no documents are collected in chat. Ask ONE question: what exactly they need, in a line.\n   - A job enquiry → name the two open roles and where they are, say experienced and freshers are both welcome, and tell them applications go through the form on the careers page with a CV attached. Ask ONE question: whether they would like a counsellor to call them about the role.\n\n# Rules for this turn\n- Answer FIRST, ask SECOND. A visitor whose question is ignored leaves.\n- Never quote a premium, rate, waiting period, room-rent limit, IDV figure, discount percentage or eligibility decision. Say the counsellor gives real numbers.\n- Do NOT ask for a policy number, PAN, Aadhaar or a document scan — not even for a claim. The counsellor collects those.\n- Stay here as long as they keep asking questions. Answer each one and re-ask your question. Do not force a funnel on someone who is still reading.\n- Plain text only, no markdown.\n\n# Routing (ALWAYS call the transition function)\n- The cover line becomes clear, or they want a renewal, or it turns out to be a claims case, a service request or a job enquiry → **Contact & Consent**. That state takes their details and then sends them to the right funnel or desk, so you do not route to any of those directly.\n- They ask to speak to a person, or want a callback now → **Callback Confirm**.\n- They are only browsing, or say thanks and stop → **Graceful Close**.",
+          "prompt": "State: S1 ANSWER & TRIAGE. The visitor typed something instead of picking a cover: a question about us, a question about a product, a renewal, a stuck or rejected claim, a policy service request, or a job enquiry. Goal: answer it properly — from the ground truth, and from the lookup tools on this step for anything about a specific plan or insurer — then find out what they need — without making them feel processed.\n\n# What to send\n1) Answer what they actually asked, in one to three short lines, using only the ground truth and what the lookup tools return. Be concrete: show the relevant facts rather than a vague promise.\n2) Then ONE question that moves them forward. Which question depends on what they asked:\n   - A product question (what does health cover include, do you do superbike policies, is travel insurance needed for a visa) → confirm that is the cover they want: 'Shall we look at health cover for you?' or, if it is genuinely unclear, offer the six cover lines again as '- ' lines.\n   - A firm question (who are you, are you IRDAI registered, where is your office, how do you charge) → answer, then 'Which cover are you looking for?' with the six choices.\n   - A renewal ('my policy is expiring', 'renew my car insurance') → confirm which policy it is if unclear, and say we compare the market at renewal rather than rolling it over blind. Never advise cancelling anything — our counsellor can compare both.\n   - A stuck, delayed, rejected or mis-sold claim → do NOT push a cover funnel. Say plainly that our claims desk takes these up on the customer's behalf, whether or not the policy was bought through us, name what the desk handles that matches their situation, and ask ONE question: 'Tell me in a line or two what happened, and I will get a counsellor to call you.'\n   - A policy service request (a document, an endorsement or detail change, a cancellation or refund, the status of a claim) → say the same desk handles it and a counsellor calls to take the specifics — no documents are collected in chat. Ask ONE question: what exactly they need, in a line.\n   - A job enquiry → name the two open roles and where they are, say experienced and freshers are both welcome, and tell them applications go through the form on the careers page with a CV attached. Ask ONE question: whether they would like a counsellor to call them about the role.\n\n# Rules for this turn\n- Answer FIRST, ask SECOND. A visitor whose question is ignored leaves.\n- Never quote a premium, rate, waiting period, room-rent limit, IDV figure, discount percentage or eligibility decision. Say the counsellor gives real numbers.\n- Do NOT ask for a policy number, PAN, Aadhaar or a document scan — not even for a claim. The counsellor collects those.\n- Stay here as long as they keep asking questions. Answer each one and re-ask your question. Do not force a funnel on someone who is still reading.\n- Plain text only, no markdown.\n\n# Routing (ALWAYS call the transition function)\n- The cover line becomes clear, or they want a renewal, or it turns out to be a claims case, a service request or a job enquiry → **Contact & Consent**. That state takes their details and then sends them to the right funnel or desk, so you do not route to any of those directly.\n- They ask to speak to a person, or want a callback now → **Callback Confirm**.\n- They are only browsing, or say thanks and stop → **Graceful Close**.",
           "extraction_prompt": "Capture what the visitor came for, if it has become clear.",
           "extraction_variables": [
             {
@@ -116,14 +118,16 @@
             }
           ],
           "crm_funnel_flag": "qualified",
-          "tool_uuids": [],
           "document_uuids": [],
-          "selected_through_edge": false,
-          "hovered_through_edge": false
+          "tool_uuids": [
+            "5e31f7fa-f818-42bb-bf6c-71b6cc821114"
+          ],
+          "invalid": false,
+          "validationMessage": null
         },
         "measured": {
           "width": 400,
-          "height": 219
+          "height": 290
         },
         "selected": false
       },
@@ -131,8 +135,8 @@
         "id": "13",
         "type": "agentNode",
         "position": {
-          "x": 900,
-          "y": 620
+          "x": 682.2811947224724,
+          "y": 509.49121247277014
         },
         "data": {
           "name": "S1b · Contact & Consent (early)",
@@ -150,7 +154,7 @@
             {
               "name": "caller_number",
               "type": "string",
-              "prompt": "The mobile number exactly as given, digits only, keeping the country code if they included one (e.g. '919810012345' or '9810012345'). This exact variable name is required for CRM lead creation. Empty if not given."
+              "prompt": "The mobile number in full international form, digits only, ALWAYS including the country code (e.g. '919810012345'). If the visitor gave a bare 10-digit Indian mobile, prefix '91'. Never drop the country code and never include '+', spaces or dashes. This exact variable name is required for CRM lead creation. Empty if not given."
             },
             {
               "name": "phone_valid",
@@ -204,23 +208,26 @@
             }
           ],
           "crm_funnel_flag": "product_selected",
-          "tool_uuids": [],
+          "tool_uuids": [
+            "5e31f7fa-f818-42bb-bf6c-71b6cc821114"
+          ],
           "document_uuids": [],
-          "selected_through_edge": false,
-          "hovered_through_edge": false
+          "invalid": false,
+          "validationMessage": null
         },
         "measured": {
           "width": 400,
-          "height": 219
+          "height": 290
         },
-        "selected": false
+        "selected": false,
+        "dragging": false
       },
       {
         "id": "23",
         "type": "agentNode",
         "position": {
-          "x": 900,
-          "y": 900
+          "x": 1526.7662576171244,
+          "y": 649.2934969531503
         },
         "data": {
           "name": "S1c · WhatsApp Permission",
@@ -252,7 +259,9 @@
             }
           ],
           "crm_funnel_flag": "",
-          "tool_uuids": [],
+          "tool_uuids": [
+            "5e31f7fa-f818-42bb-bf6c-71b6cc821114"
+          ],
           "document_uuids": [],
           "buttons": [
             {
@@ -268,14 +277,17 @@
               "consent_channel": "whatsapp"
             }
           ],
+          "invalid": false,
+          "validationMessage": null,
           "selected_through_edge": false,
           "hovered_through_edge": false
         },
         "measured": {
           "width": 400,
-          "height": 219
+          "height": 290
         },
-        "selected": false
+        "selected": false,
+        "dragging": false
       },
       {
         "id": "4",
@@ -369,10 +381,12 @@
             }
           ],
           "crm_funnel_flag": "contact_captured",
-          "tool_uuids": [],
           "document_uuids": [],
-          "selected_through_edge": false,
-          "hovered_through_edge": false
+          "tool_uuids": [
+            "5e31f7fa-f818-42bb-bf6c-71b6cc821114"
+          ],
+          "invalid": false,
+          "validationMessage": null
         },
         "measured": {
           "width": 400,
@@ -462,10 +476,12 @@
             }
           ],
           "crm_funnel_flag": "contact_captured",
-          "tool_uuids": [],
           "document_uuids": [],
-          "selected_through_edge": false,
-          "hovered_through_edge": false
+          "tool_uuids": [
+            "5e31f7fa-f818-42bb-bf6c-71b6cc821114"
+          ],
+          "invalid": false,
+          "validationMessage": null
         },
         "measured": {
           "width": 400,
@@ -560,8 +576,12 @@
             }
           ],
           "crm_funnel_flag": "contact_captured",
-          "tool_uuids": [],
           "document_uuids": [],
+          "tool_uuids": [
+            "5e31f7fa-f818-42bb-bf6c-71b6cc821114"
+          ],
+          "invalid": false,
+          "validationMessage": null,
           "selected_through_edge": false,
           "hovered_through_edge": false
         },
@@ -658,8 +678,12 @@
             }
           ],
           "crm_funnel_flag": "contact_captured",
-          "tool_uuids": [],
           "document_uuids": [],
+          "tool_uuids": [
+            "5e31f7fa-f818-42bb-bf6c-71b6cc821114"
+          ],
+          "invalid": false,
+          "validationMessage": null,
           "selected_through_edge": false,
           "hovered_through_edge": false
         },
@@ -763,8 +787,8 @@
           "crm_funnel_flag": "contact_captured",
           "tool_uuids": [],
           "document_uuids": [],
-          "selected_through_edge": false,
-          "hovered_through_edge": false
+          "invalid": false,
+          "validationMessage": null
         },
         "measured": {
           "width": 400,
@@ -889,8 +913,12 @@
             }
           ],
           "crm_funnel_flag": "contact_captured",
-          "tool_uuids": [],
           "document_uuids": [],
+          "tool_uuids": [
+            "5e31f7fa-f818-42bb-bf6c-71b6cc821114"
+          ],
+          "invalid": false,
+          "validationMessage": null,
           "selected_through_edge": false,
           "hovered_through_edge": false
         },
@@ -957,16 +985,18 @@
             }
           ],
           "crm_funnel_flag": "contact_captured",
-          "tool_uuids": [],
           "document_uuids": [],
-          "selected_through_edge": false,
-          "hovered_through_edge": false
+          "tool_uuids": [
+            "5e31f7fa-f818-42bb-bf6c-71b6cc821114"
+          ],
+          "invalid": false,
+          "validationMessage": null
         },
         "measured": {
           "width": 400,
           "height": 219
         },
-        "selected": false
+        "selected": true
       },
       {
         "id": "10",
@@ -1040,8 +1070,12 @@
             }
           ],
           "crm_funnel_flag": "qualified",
-          "tool_uuids": [],
           "document_uuids": [],
+          "tool_uuids": [
+            "5e31f7fa-f818-42bb-bf6c-71b6cc821114"
+          ],
+          "invalid": false,
+          "validationMessage": null,
           "selected_through_edge": false,
           "hovered_through_edge": false
         },
@@ -1100,6 +1134,8 @@
           "crm_funnel_flag": "qualified",
           "tool_uuids": [],
           "document_uuids": [],
+          "invalid": false,
+          "validationMessage": null,
           "selected_through_edge": false,
           "hovered_through_edge": false
         },
@@ -1153,8 +1189,8 @@
           "crm_funnel_flag": "qualified",
           "tool_uuids": [],
           "document_uuids": [],
-          "selected_through_edge": false,
-          "hovered_through_edge": false
+          "invalid": false,
+          "validationMessage": null
         },
         "measured": {
           "width": 400,
@@ -1185,7 +1221,7 @@
             {
               "name": "caller_number",
               "type": "string",
-              "prompt": "The mobile number exactly as given, digits only, keeping the country code if included — ONLY if they gave it at this state. This exact variable name is required for CRM lead creation. Empty if it was captured earlier or not given."
+              "prompt": "The mobile number in full international form, digits only, ALWAYS including the country code (e.g. '919810012345') — ONLY if they gave it at this state. If they gave a bare 10-digit Indian mobile, prefix '91'. Never drop the country code and never include '+', spaces or dashes. This exact variable name is required for CRM lead creation. Empty if it was captured earlier or not given."
             },
             {
               "name": "phone_valid",
@@ -1223,11 +1259,11 @@
               "prompt": "Always exactly 'yes' - the visitor reached this state by asking for or accepting a callback. Never empty."
             }
           ],
-          "crm_funnel_flag": "contact_captured",
+          "crm_funnel_flag": "callback_requested",
           "tool_uuids": [],
           "document_uuids": [],
-          "selected_through_edge": false,
-          "hovered_through_edge": false
+          "invalid": false,
+          "validationMessage": null
         },
         "measured": {
           "width": 400,
@@ -1264,8 +1300,8 @@
           ],
           "crm_funnel_flag": "callback_requested",
           "allow_interrupt": false,
-          "selected_through_edge": false,
-          "hovered_through_edge": false
+          "invalid": false,
+          "validationMessage": null
         },
         "measured": {
           "width": 400,
@@ -1302,6 +1338,8 @@
           ],
           "crm_funnel_flag": "handover",
           "allow_interrupt": false,
+          "invalid": false,
+          "validationMessage": null,
           "selected_through_edge": false,
           "hovered_through_edge": false
         },
@@ -1345,6 +1383,8 @@
           ],
           "crm_funnel_flag": "dropped_off",
           "allow_interrupt": false,
+          "invalid": false,
+          "validationMessage": null,
           "selected_through_edge": false,
           "hovered_through_edge": false
         },
@@ -1452,7 +1492,9 @@
               "opening_question": "{{gathered_context.opening_question}}"
             },
             "transcript_url": "{{transcript_url}}"
-          }
+          },
+          "invalid": false,
+          "validationMessage": null
         },
         "measured": {
           "width": 320,
@@ -1475,7 +1517,9 @@
           "qa_voicemail_calls": false,
           "qa_sample_rate": 100,
           "qa_use_workflow_llm": true,
-          "qa_model": "default"
+          "qa_model": "default",
+          "invalid": false,
+          "validationMessage": null
         },
         "measured": {
           "width": 320,
@@ -1512,7 +1556,9 @@
             "channel": "{{initial_context.messaging_consent_channel}}",
             "source": "web_chat",
             "consent_at": "{{initial_context.messaging_consent_at}}"
-          }
+          },
+          "invalid": false,
+          "validationMessage": null
         },
         "measured": {
           "width": 320,
@@ -1531,7 +1577,9 @@
         "data": {
           "condition": "The visitor has named or pointed at a cover line, wants to renew an existing policy, described a claim problem or a policy service request, or asked about a job",
           "label": "Intent known",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1544,7 +1592,9 @@
         "data": {
           "condition": "The visitor asked a question, or said something that leaves the intent unclear",
           "label": "Question / unclear",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1557,7 +1607,9 @@
         "data": {
           "condition": "The visitor says they are only looking around, or thanks us and leaves it there",
           "label": "Just browsing",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1570,7 +1622,9 @@
         "data": {
           "condition": "It has become clear what the visitor needs — a cover line, a renewal, a claims case, a service request, or a job enquiry",
           "label": "Intent clear",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1583,7 +1637,9 @@
         "data": {
           "condition": "The visitor asks to speak to a person or wants a callback now",
           "label": "Wants a human",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1596,7 +1652,9 @@
         "data": {
           "condition": "The visitor is only browsing, or says thanks and stops",
           "label": "Done",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1609,7 +1667,9 @@
         "data": {
           "condition": "The visitor is here for health cover — whether or not they shared their contact details",
           "label": "Q: Health",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1622,7 +1682,9 @@
         "data": {
           "condition": "The visitor is here for life cover — whether or not they shared their contact details",
           "label": "Q: Life",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1635,7 +1697,9 @@
         "data": {
           "condition": "The visitor is here for car cover — whether or not they shared their contact details",
           "label": "Q: Car",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1648,7 +1712,9 @@
         "data": {
           "condition": "The visitor is here for bike or two-wheeler cover — whether or not they shared their contact details",
           "label": "Q: Bike",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1661,7 +1727,9 @@
         "data": {
           "condition": "The visitor is here for travel cover — whether or not they shared their contact details",
           "label": "Q: Travel",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1674,7 +1742,9 @@
         "data": {
           "condition": "The visitor is here for marine cargo or hull cover — whether or not they shared their contact details",
           "label": "Q: Marine",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1687,7 +1757,9 @@
         "data": {
           "condition": "The visitor wants to renew an existing policy — whether or not they shared their contact details",
           "label": "Q: Renewal",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1700,7 +1772,9 @@
         "data": {
           "condition": "The visitor has a claim that is stuck, delayed, rejected or mis-sold, a lapsed policy, an underwriting decline, or a policy service request such as a document, an endorsement, a cancellation or a claim status",
           "label": "Support / claims",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1713,7 +1787,9 @@
         "data": {
           "condition": "The visitor is asking about a job or a career at the firm",
           "label": "Careers",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1726,7 +1802,9 @@
         "data": {
           "condition": "The visitor disengages entirely, or says they are only looking",
           "label": "Drops off",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1739,7 +1817,9 @@
         "data": {
           "condition": "All six health qualification answers have been captured",
           "label": "Qualified",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1752,7 +1832,9 @@
         "data": {
           "condition": "The visitor asks for a person or a callback before finishing the questions",
           "label": "Wants a human",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1765,7 +1847,9 @@
         "data": {
           "condition": "The visitor is not interested, or is only looking",
           "label": "Drops off",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1778,7 +1862,9 @@
         "data": {
           "condition": "All seven life qualification answers have been captured",
           "label": "Qualified",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1791,7 +1877,9 @@
         "data": {
           "condition": "The visitor asks for a person or a callback before finishing the questions",
           "label": "Wants a human",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1804,7 +1892,9 @@
         "data": {
           "condition": "The visitor is not interested, or is only looking",
           "label": "Drops off",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1817,7 +1907,9 @@
         "data": {
           "condition": "All the car qualification questions that apply have been answered",
           "label": "Qualified",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1830,7 +1922,9 @@
         "data": {
           "condition": "The visitor asks for a person or a callback before finishing the questions",
           "label": "Wants a human",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1843,7 +1937,9 @@
         "data": {
           "condition": "The visitor is not interested, or is only looking",
           "label": "Drops off",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1856,7 +1952,9 @@
         "data": {
           "condition": "All the bike qualification questions that apply have been answered",
           "label": "Qualified",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1869,7 +1967,9 @@
         "data": {
           "condition": "The visitor asks for a person or a callback before finishing the questions",
           "label": "Wants a human",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1882,7 +1982,9 @@
         "data": {
           "condition": "The visitor is not interested, or is only looking",
           "label": "Drops off",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1895,7 +1997,9 @@
         "data": {
           "condition": "All seven travel qualification answers have been captured",
           "label": "Qualified",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1908,7 +2012,9 @@
         "data": {
           "condition": "The visitor asks for a person or a callback before finishing the questions",
           "label": "Wants a human",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1921,7 +2027,9 @@
         "data": {
           "condition": "The visitor is not interested, or is only looking",
           "label": "Drops off",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1934,7 +2042,9 @@
         "data": {
           "condition": "All the marine questions on the active path (cargo or hull) have been answered",
           "label": "Qualified",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1947,7 +2057,9 @@
         "data": {
           "condition": "The visitor asks for a person or a callback before finishing the questions",
           "label": "Wants a human",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1960,7 +2072,9 @@
         "data": {
           "condition": "The route involves a sanctioned country — this needs a compliance review and must not become a sales lead",
           "label": "Compliance review",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1973,7 +2087,9 @@
         "data": {
           "condition": "The visitor is not interested, or is only looking",
           "label": "Drops off",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1986,7 +2102,9 @@
         "data": {
           "condition": "All three renewal answers have been captured",
           "label": "Qualified",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -1999,7 +2117,9 @@
         "data": {
           "condition": "The visitor asks for a person or a callback before finishing the questions",
           "label": "Wants a human",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2012,7 +2132,9 @@
         "data": {
           "condition": "The visitor is not interested, or is only looking",
           "label": "Drops off",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2025,7 +2147,9 @@
         "data": {
           "condition": "The visitor has described what happened or what they need, or asks to be called about the case",
           "label": "Case captured",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2038,7 +2162,9 @@
         "data": {
           "condition": "The visitor only wanted to know whether we handle this kind of case and is done",
           "label": "Info only",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2051,7 +2177,9 @@
         "data": {
           "condition": "The visitor disengages entirely",
           "label": "Drops off",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2064,7 +2192,9 @@
         "data": {
           "condition": "The candidate wants someone to call them about the role",
           "label": "Wants a call",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2077,7 +2207,9 @@
         "data": {
           "condition": "The candidate will use the careers-page form, or is simply done",
           "label": "Will apply online",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2090,7 +2222,9 @@
         "data": {
           "condition": "The candidate disengages",
           "label": "Drops off",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2103,7 +2237,9 @@
         "data": {
           "condition": "The visitor wants an adviser to call them back",
           "label": "Yes, call me",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2116,7 +2252,9 @@
         "data": {
           "condition": "The visitor would rather not be called, or would rather use the form or call us themselves",
           "label": "No callback",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2129,7 +2267,9 @@
         "data": {
           "condition": "The visitor goes quiet or says they are done",
           "label": "Drops off",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2142,7 +2282,9 @@
         "data": {
           "condition": "We have a name and a plausible mobile number, from earlier in the chat or from this state",
           "label": "Contact confirmed",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2155,7 +2297,9 @@
         "data": {
           "condition": "The visitor declined again, or will not share a number",
           "label": "Declines contact",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2168,7 +2312,9 @@
         "data": {
           "condition": "The visitor disengages entirely",
           "label": "Drops off",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2181,7 +2327,9 @@
         "data": {
           "condition": "The visitor asked to be called back, asked for a callback, or asked to speak to someone - before naming any cover",
           "label": "Wants a callback",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2194,7 +2342,9 @@
         "data": {
           "condition": "Instead of sharing or declining details, the visitor asked for a callback or to be called",
           "label": "Wants a callback",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2207,7 +2357,9 @@
         "data": {
           "condition": "The visitor gave a mobile number on this turn (with or without an email), so there is a number a WhatsApp permission can be recorded against",
           "label": "Number given",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2220,7 +2372,9 @@
         "data": {
           "condition": "The visitor came for health cover — whichever way they answered the WhatsApp question",
           "label": "Q: Health",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2233,7 +2387,9 @@
         "data": {
           "condition": "The visitor came for life cover — whichever way they answered the WhatsApp question",
           "label": "Q: Life",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2246,7 +2402,9 @@
         "data": {
           "condition": "The visitor came for car cover — whichever way they answered the WhatsApp question",
           "label": "Q: Car",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2259,7 +2417,9 @@
         "data": {
           "condition": "The visitor came for bike or two-wheeler cover — whichever way they answered the WhatsApp question",
           "label": "Q: Bike",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2272,7 +2432,9 @@
         "data": {
           "condition": "The visitor came for travel cover — whichever way they answered the WhatsApp question",
           "label": "Q: Travel",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2285,7 +2447,9 @@
         "data": {
           "condition": "The visitor came for marine cargo or hull cover — whichever way they answered the WhatsApp question",
           "label": "Q: Marine",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2298,7 +2462,9 @@
         "data": {
           "condition": "The visitor wants to renew an existing policy — whichever way they answered the WhatsApp question",
           "label": "Q: Renewal",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2311,7 +2477,9 @@
         "data": {
           "condition": "The visitor has a claim that is stuck, delayed, rejected or mis-sold, a lapsed policy, an underwriting decline, or a policy service request — whichever way they answered the WhatsApp question",
           "label": "Support / claims",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2324,7 +2492,9 @@
         "data": {
           "condition": "The visitor is asking about a job or a career at the firm — whichever way they answered the WhatsApp question",
           "label": "Careers",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2337,7 +2507,9 @@
         "data": {
           "condition": "The visitor asked for a callback or to be called — whichever way they answered the WhatsApp question",
           "label": "Wants a callback",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       },
@@ -2350,14 +2522,16 @@
         "data": {
           "condition": "The visitor disengages entirely, or says they are only looking — whichever way they answered the WhatsApp question",
           "label": "Drops off",
-          "transition_speech_type": "text"
+          "transition_speech_type": "text",
+          "invalid": false,
+          "validationMessage": null
         },
         "selected": false
       }
     ],
     "viewport": {
-      "x": -100,
-      "y": -227.30000000000007,
+      "x": 81.99288276012021,
+      "y": 60.047494474601535,
       "zoom": 0.4
     }
   }

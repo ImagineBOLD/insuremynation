@@ -23,6 +23,12 @@
  *   - **A blank line ends the run.** Conservative on purpose: two separate short lists are
  *     more likely to be prose than one menu.
  *   - **80 characters.** Beyond that it is prose, not a label, and it would not fit a chip.
+ *   - **The dash must sit at column 0.** An indented dashed line is a nested fact under a
+ *     label, not a choice. The bot now writes plan comparisons as a `Cover:` line followed by
+ *     indented dashes; matching those turned every fact into a chip *and* deleted it from the
+ *     body, leaving the visitor a bare label with its content gone. A real option list from
+ *     the orchestrator is never indented, so requiring column 0 loses nothing. Trailing
+ *     whitespace is still tolerated.
  *   - **A failed parse returns the message untouched**, chips absent. Never an error, and
  *     never a reply the visitor does not get to read.
  *
@@ -31,9 +37,15 @@
  * message text and the orchestrator normalises it, so "36 to 50" and "my dad is 47" land
  * the same way.
  */
-const OPTION = /^-\s+(.{1,80})$/;
+// Dash at column 0, then at least one space, then a label that starts on a non-space and is
+// captured lazily, so trailing whitespace — or a stray CR from \r\n — is tolerated without
+// counting towards the 80. `\S` also keeps "-    " (a dash and nothing else) from parsing as
+// a blank chip, which trimming used to rule out.
+const OPTION = /^-[ \t]+(\S.{0,79}?)[ \t\r]*$/;
 
-const optionLabel = (line) => line.trim().match(OPTION)?.[1] ?? null;
+// Not trimmed on purpose: the left edge is the only thing separating an option from an
+// indented fact.
+const optionLabel = (line) => line.match(OPTION)?.[1] ?? null;
 
 export function splitOptions(text) {
   const lines = String(text ?? '').split('\n');
