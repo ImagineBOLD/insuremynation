@@ -11,6 +11,9 @@ Two directories, **one** deployable.
 | `frontend/` | the React site (Vite + React 18 + React Router 6 + Framer Motion) |
 | `backend/` | Go service: serves the built site from an embedded filesystem, and nothing else |
 
+Plus, at the root, three JSON files that are part of **neither** build: they are exports of
+the imagine.bo/dograh chat workflow. See *The funnel* below — their filenames mislead.
+
 This file is the **only** `CLAUDE.md` in the repo, and `README.md`, `.gitignore` and
 `.gitattributes` are likewise single and at the root. Do not re-add per-directory copies.
 `frontend/` used to carry its own `CLAUDE.md` and `README.md`; both were removed and that
@@ -41,6 +44,14 @@ loader** — a WordPress leftover for a Contact Form 7 form this build does not 
 effect was Google's floating badge in the bottom-right corner, behind the chat panel. Nothing
 reads `grecaptcha`. A pull that restores it brings the badge back; delete it again.
 
+`frontend/index.html` is otherwise upstream's, and its head is now mostly marketing tags:
+**three** GTM containers (`GTM-PNX2KL6`, `GTM-5CMDJ73Z`, `GTM-N2D4SQ9W`), a Google Ads
+`gtag` (`AW-16945755026`) and a Meta Pixel (`452243449957607`), each GTM with a
+`<noscript>` twin in the body. Three containers on one page is more likely a duplicate than
+a plan — ask whoever runs the ad accounts before adding a fourth or removing one, and expect
+pulls to touch this block. Everything below them (the font preconnect/preload, the
+conditional `landing-hero.webp` preload on `/`) is performance work; leave it.
+
 ## Commands
 
 All `npm` commands run from `frontend/`; all `go` commands from `backend/`.
@@ -50,6 +61,7 @@ npm run dev              # Vite dev server on http://localhost:5173
 npm run build            # production build into frontend/dist/
 npm run preview          # serve the production build
 npm run images           # regenerate public/assets/ from the design handoff bundle
+npm run images:optimize  # re-encode what is already in public/assets/ (scripts/optimize-images.mjs)
 node scripts/export-kb.mjs   # regenerate kb-corpus.txt from the site's own copy
 
 node scripts/check-split-options.mjs   # chat: the reply-to-chips parser
@@ -58,6 +70,13 @@ node scripts/check-contact-ask.mjs     # chat: spotting the contact turn
 node scripts/check-emphasis.mjs        # chat: unwrapping **bold**, keeping "T&C apply*"
 
 go build ./... && go vet ./... && go test ./...
+go run ./cmd/server      # serves the committed *placeholder* dist, not a real site build
+```
+
+From the repo root:
+
+```bash
+make deploy              # railway up --service insuremynation --ci
 ```
 
 There is no lint or test framework in the frontend and it does not need one. The
@@ -150,6 +169,7 @@ What is left, and what each piece is for:
 | `contactAsk.js` / `ContactForm.jsx` / `countries.js` | the contact turn as fields instead of a paragraph |
 | `ChatPanel.jsx` / `Message.jsx` | the panel, per the WhatsApp-style design |
 | `ChatWidget.jsx` | launcher, open/close, Escape |
+| `RobotGlyph.jsx` | the handoff's `chatbot.svg` as inline JSX — launcher (white), header (brand blue) |
 
 Six things that are easy to get wrong:
 
@@ -202,6 +222,35 @@ stays visible underneath, which is both their rule and the fallback when the det
 `node scripts/check-contact-ask.mjs` pins the live wording so a reword fails a check instead of
 silently removing the form.
 
+### The funnel
+
+The funnel is **theirs to run and ours to version**. The three root JSONs are exports of one
+dograh/imagine.bo workflow, `InsureNation (Website Chatbot) - Leads` — 22 nodes, and despite
+the filename **none of them holds lead data**:
+
+- `startCall` S0 Welcome & Router → `agentNode` S1 Answer & Triage → S1b Contact & Consent
+  (early) → S1c WhatsApp Permission → the six per-product qualifications F1 Health … F6 Marine,
+  plus R1 Renewal, C1 Support & Claims, C2 Careers → S2 Summary & Callback Offer → S4 Callback
+  Confirm → `endCall` E1 Callback Confirmed / E2 Handover / E3 Graceful Close. Two `webhook`
+  nodes (Push Lead to CRM, Push WhatsApp Consent) and one `qa` node hang off it.
+- The `globalNode` "Persona + Ground Truth" is the system prompt — the no-premiums,
+  no-waiting-periods, never-re-ask rules the assistant is held to. Read it before assuming the
+  bot "should" answer something; most of what it declines, it declines on purpose.
+- **Newest wins.** `InsureNation-workflow-mcp.json` (commit `adc96e0`) is current: it is the
+  only one whose agent nodes carry `tool_uuids: ["<UUID:kb_mcp>"]`, i.e. the knowledge base
+  reached as an MCP tool rather than pasted into the prompt. `correct_workflow.json` and
+  `InsureNation (Website Chatbot) - Leads.json` are earlier snapshots kept for diffing.
+- These are **import/export artifacts of their builder**, not something this repo compiles or
+  serves. Nothing reads them at build or run time. Change the workflow on their side, export,
+  commit the new file — hand-editing the JSON changes nothing live.
+- What the client keys off is decided in these nodes: the consent option `id` that
+  `useHeadlessChat` sends back as `reply_id`, the `crm_funnel_flag` values, and the exact
+  contact-turn wording `contactAsk.js` sniffs for. Reword a node, re-run the check scripts.
+
+The widget token (`wgt_…` in `useHeadlessChat.js`) ships in the page **by design** — it is a
+public widget token and the origin allowlist is what guards the endpoint. Do not treat it as a
+leaked secret and do not build a backend to hide it.
+
 ### Mobile
 
 Below 560px the panel is a full-screen sheet, set in `chat.css` — a 380px floating card on a
@@ -235,6 +284,10 @@ It serves the embedded site and answers a healthcheck. That is all it does.
 - `CLIENT_IP_HEADER` still feeds `middleware.RateLimiter`, and **must** name a header the edge
   *overwrites* (`X-Real-Ip` on Railway). Naming one the edge does not set is worse than leaving
   it blank: every caller can then claim any IP.
+- The service reads exactly four env vars: `PORT` and `ENV` through `config.LoadConfig`
+  (defaults `8080` / `production`), and `CANONICAL_HOST` and `CLIENT_IP_HEADER` straight off
+  `os.Getenv` in `server.go`. `config.Config` has no field for the latter two — grep, don't
+  assume the struct is the whole list.
 - The `RAG_*` variables are dead — nothing reads them. Remove them from the Railway service.
 
 `frontend/kb-corpus.txt` and `scripts/export-kb.mjs` are kept: the corpus is still how the

@@ -7,7 +7,7 @@ import { splitOptions } from './splitOptions';
  *
  * Built to HEADLESS_CHAT_INTEGRATION.md. Three endpoints, JSON in and JSON out, called
  * **direct from the browser** — there is no API key in this integration, so unlike the
- * `/v1` proxy in useChat.js there is nothing for our Go service to hold. The widget token
+ * deleted `/v1` proxy there is nothing for our Go service to hold. The widget token
  * ships in the page. What protects the endpoint instead is a domain allowlist on their
  * side, which is why the chat only works on an origin they have listed.
  *
@@ -21,9 +21,6 @@ import { splitOptions } from './splitOptions';
  * behaviour is still v1** (run 5684 asked for nothing), so it is not something to code
  * against — nothing here needs to change when it lands, because the ask is just another
  * turn of text and we never model whether contact details exist.
- *
- * Same hook shape as useChat.js so ChatPanel does not know which backend is live. See
- * chatBackend.js.
  */
 
 const BASE = 'https://orchestrator.imagine.bo';

@@ -8,8 +8,9 @@ node_modules
 # directory, which would make the committed //go:embed placeholder below
 # impossible to track.
 frontend/dist
+frontend/dist.zip
 _source
-.vite`  `
+.vite
 
 # NOTE: frontend/kb-corpus.txt is deliberately NOT ignored, though it is generated
 # output. It is the entire text a public-facing insurance assistant answers from, so
