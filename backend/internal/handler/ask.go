@@ -88,8 +88,52 @@ func Ask(c *gin.Context) {
 		return
 	}
 
+	forward(c, base, key, "/api/ask", body)
+}
+
+// openerRequest is the page context and nothing else. An opener is not a question anyone asked,
+// so there is no q, no history and no contact detail to carry.
+type openerRequest struct {
+	Data map[string]string `json:"data,omitempty"`
+}
+
+// Opener handles POST /v1/opener: what the panel says when it opens.
+//
+// A visitor who opens the chat on /health-insurance is standing on that product's page, and
+// asking them which cover they want reads as not having paid attention. The RAG turns the page
+// context into that funnel's first question instead. It is deterministic there — no retrieval,
+// no completion — so unlike the orchestrator's old greeting this costs nothing per panel open,
+// which is what retired that one.
+func Opener(c *gin.Context) {
+	base := strings.TrimRight(os.Getenv("RAG_URL"), "/")
+	key := os.Getenv("RAG_API_KEY")
+	if base == "" || key == "" {
+		// The panel keeps its own local greeting as a fallback, so an unconfigured service
+		// costs the page context, not the conversation.
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "assistant not configured"})
+		return
+	}
+
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxRequestBytes)
+	var req openerRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		return
+	}
+	body, err := json.Marshal(req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		return
+	}
+
+	forward(c, base, key, "/api/opener", body)
+}
+
+// forward posts to the RAG and relays its reply verbatim. The upstream key is attached here and
+// never reaches anything the browser can read.
+func forward(c *gin.Context, base, key, path string, body []byte) {
 	outbound, err := http.NewRequestWithContext(c.Request.Context(), http.MethodPost,
-		base+"/api/ask", strings.NewReader(string(body)))
+		base+path, strings.NewReader(string(body)))
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": "could not reach the assistant"})
 		return

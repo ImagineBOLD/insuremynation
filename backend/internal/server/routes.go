@@ -27,4 +27,9 @@ func RegisterRoutes(r *gin.Engine) {
 	v1 := r.Group("/v1")
 	v1.Use(middleware.AllowOrigins(), middleware.RateLimiter(15, time.Minute))
 	v1.POST("/ask", handler.Ask)
+	// The panel's opening turn, so a visitor on /health-insurance is asked that funnel's first
+	// question rather than which cover they want. Same allowlist and the same key, but it costs
+	// nothing upstream: the RAG answers it from the page context, with no retrieval and no
+	// completion.
+	v1.POST("/opener", handler.Opener)
 }

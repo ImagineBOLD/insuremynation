@@ -31,6 +31,8 @@ import { splitOptions } from './splitOptions';
  */
 
 const ENDPOINT = '/v1/ask';
+// The panel's first turn. Same-origin like /v1/ask, and the key stays in the Go service.
+const OPENER_ENDPOINT = '/v1/opener';
 
 /** A turn runs retrieval, an embedding call and a completion, and may retry the completion. */
 const REQUEST_TIMEOUT = 45_000;
@@ -54,8 +56,10 @@ const STATE_KEY = 'insurenation-chat-state';
  * panel must not open empty.
  */
 const GREETING =
-  'Hi! I can answer what our insurers actually cover — inclusions, exclusions, claims and ' +
-  'definitions, straight from the policy documents. Which cover are you looking for?\n' +
+  "Hi! I'm the InsureNation assistant. I can help with new cover, a renewal, or a claim that " +
+  "is stuck. I'm an automated assistant — anything we discuss is indicative and subject to " +
+  'underwriting; a licensed counsellor gives the real numbers.\n\n' +
+  'Which cover are you looking for?\n' +
   '- Health\n- Life\n- Car\n- Bike\n- Travel\n- Marine (cargo or hull)';
 
 const newSessionId = () =>
@@ -160,17 +164,51 @@ export function useHeadlessChat() {
   );
 
   /**
-   * What ChatWidget calls when the panel opens. No network: it seeds the greeting as a real
-   * first message, and does nothing at all if a conversation is already restored.
+   * What ChatWidget calls when the panel opens. Does nothing if a conversation is restored.
+   *
+   * It asks the service for the opener, because the opener depends on the page: a visitor who
+   * opens the chat on /health-insurance is standing on that product's page, and asking them
+   * which cover they want reads as not having paid attention. They get that funnel's first
+   * question instead, and the questions live in one place — the service — rather than being
+   * copied into this bundle where they would drift.
+   *
+   * The old objection to a fetched greeting was that it cost a completion on every panel open,
+   * including the ones nobody read. This one is deterministic upstream: no retrieval, no model.
+   * A typing indicator while it lands reads as normal in a chat; a wrong greeting does not.
+   *
+   * GREETING remains as the fallback, so a failed or unconfigured opener costs the page context
+   * rather than the conversation.
    */
+  const openPanel = useCallback(
+    async (force) => {
+      if (busyRef.current) return;
+      busyRef.current = true;
+      setPending(true);
+      let opened = null;
+      try {
+        const res = await fetch(OPENER_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: pageContext() }),
+        });
+        if (res.ok) opened = await res.json();
+      } catch {
+        /* falls through to the local greeting */
+      }
+      const next = opened?.question
+        ? [assistantMessage(opened.greeting), assistantMessage(opened.question)]
+        : [assistantMessage(GREETING)];
+      setMessages((prev) => (!force && prev.length ? prev : (persist(next, force ? false : undefined), next)));
+      setPending(false);
+      busyRef.current = false;
+    },
+    [persist]
+  );
+
   const init = useCallback(() => {
-    setMessages((prev) => {
-      if (prev.length) return prev;
-      const next = [assistantMessage(GREETING)];
-      persist(next);
-      return next;
-    });
-  }, [persist]);
+    if (messages.length) return;
+    openPanel(false);
+  }, [messages.length, openPanel]);
 
   // `replyId` is vestigial — it belonged to the orchestrator's server-declared options. `contact`
   // is live again: `{name, phone, email}` from ContactForm. The RAG buffers every turn of a
@@ -283,10 +321,11 @@ export function useHeadlessChat() {
     setEscalated(false);
     setReason(null);
     setContactDone(false);
-    const next = [assistantMessage(GREETING)];
-    setMessages(next);
-    persist(next, false);
-  }, [persist]);
+    // Re-fetch rather than seeding the local greeting: starting over on a product page should
+    // land on that product's first question again, exactly as opening the panel does.
+    setMessages([]);
+    openPanel(true);
+  }, [openPanel]);
 
   // Chips come from the last assistant reply. In practice there are none — see
   // assistantMessage — but the path stays live if a reply ever carries a list.
