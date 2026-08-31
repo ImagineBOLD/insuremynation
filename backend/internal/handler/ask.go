@@ -42,6 +42,19 @@ type askRequest struct {
 	History []json.RawMessage `json:"history,omitempty"`
 	Insurer string            `json:"insurer,omitempty"`
 	Line    string            `json:"line,omitempty"`
+
+	// Forwarded so the RAG can report the conversation to the CRM as a lead. All optional:
+	// without SessionID nothing is reported at all, and the RAG buffers everything until a Phone
+	// arrives, because the CRM cannot create a lead without one.
+	//
+	// Deliberately relayed rather than interpreted. Which funnel flags to set, when a lead is
+	// reportable and what the org's lead-category keys are all belong to the RAG's CRM client;
+	// deciding any of it here would put the same rules in two places.
+	SessionID string            `json:"session_id,omitempty"`
+	Phone     string            `json:"phone,omitempty"`
+	Name      string            `json:"name,omitempty"`
+	Email     string            `json:"email,omitempty"`
+	Data      map[string]string `json:"data,omitempty"`
 }
 
 // Ask handles POST /v1/ask.
