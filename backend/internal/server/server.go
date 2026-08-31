@@ -62,11 +62,13 @@ func StartServer() {
 // canonicalHost sends page requests that arrive on any other hostname to CANONICAL_HOST.
 //
 // The service answers on both its Railway subdomain and the custom domain, and the two are
-// not interchangeable: the chat calls imagine.bo's orchestrator direct from the browser, and
-// that endpoint enforces a domain allowlist. Only the custom domain is on it, so the Railway
-// subdomain serves a page that looks fine and a chat that returns 403 — the worst kind of
-// broken, because nothing on the page says so. A visitor who lands there should end up
-// somewhere the assistant works.
+// not interchangeable: /v1/ask is guarded by RAG_ALLOWED_ORIGINS, which lists the custom
+// domain alone, so the Railway subdomain serves a page that looks fine and a chat that returns
+// 403 — the worst kind of broken, because nothing on the page says so. A visitor who lands
+// there should end up somewhere the assistant works.
+//
+// The allowlist used to be imagine.bo's rather than ours, back when the browser called their
+// orchestrator direct. Same symptom, same fix; it is only the owner of the list that moved.
 //
 // Unset, this does nothing: a bare `go run` and any preview deployment stay reachable on
 // whatever host they answer on.

@@ -9,7 +9,7 @@ Two directories, **one** deployable.
 | path | what |
 | --- | --- |
 | `frontend/` | the React site (Vite + React 18 + React Router 6 + Framer Motion) |
-| `backend/` | Go service: serves the built site from an embedded filesystem, and nothing else |
+| `backend/` | Go service: serves the built site from an embedded filesystem, plus the `/v1/ask` chat proxy |
 
 Plus, at the root, three JSON files that are part of **neither** build: they are exports of
 the imagine.bo/dograh chat workflow. See *The funnel* below — their filenames mislead.
@@ -25,15 +25,17 @@ the build needs both directories: it builds the site with npm, embeds the output
 Go binary via `//go:embed` (`backend/internal/fs.go`), and ships one container. On Railway
 leave the service's Root Directory empty so the build context is the repo root.
 
-Deployed at **https://insuremynation.imaginebo.app** — that is the canonical host and the
-only one the chat works on, because imagine.bo's orchestrator enforces a domain allowlist and
-only this domain is on it. The Railway subdomain
+Deployed at **https://insuremynation.imaginebo.app** — the canonical host, and still the only
+one whose chat works, though the reason has changed. It used to be imagine.bo enforcing a
+domain allowlist we did not control; it is now `RAG_ALLOWED_ORIGINS` on our own service, and
+that variable lists this domain alone. The Railway subdomain
 (`insuremynation-production.up.railway.app`) still answers and serves the same build, but its
-chat gets a `403 Domain not allowed`, which presents as a page that looks fine above a dead
-assistant. `CANONICAL_HOST` makes the service redirect page requests there; see
-`canonicalHost` in `server.go`. Point ads and anything else public at the custom domain, and
-when adding a new origin — a staging host, a dev port — get it allowlisted first or its chat
-will 403 too.
+chat gets `403 {"error":"origin not allowed"}` — a page that looks fine above a dead
+assistant. `CANONICAL_HOST` makes the service redirect page requests to the custom domain;
+see `canonicalHost` in `server.go`. Point ads there. Adding an origin is now a Railway
+variable rather than a request to someone else, but it is still a step: an unlisted host gets
+a 403 the same way. A dev port is the exception — Vite proxies `/v1`, so `localhost:5173` is
+same-origin and needs no entry.
 
 Everything here is on GitHub, `backend/` and the deploy files included. Upstream authors
 the site itself, so when pulling expect it to own `frontend/src/pages`,
@@ -64,9 +66,10 @@ npm run images           # regenerate public/assets/ from the design handoff bun
 npm run images:optimize  # re-encode what is already in public/assets/ (scripts/optimize-images.mjs)
 node scripts/export-kb.mjs   # regenerate kb-corpus.txt from the site's own copy
 
+node scripts/check-ask-response.mjs    # chat: answer-or-error, per /v1/ask response
 node scripts/check-split-options.mjs   # chat: the reply-to-chips parser
 node scripts/check-page-context.mjs    # chat: first-seen landed_from / referrer
-node scripts/check-contact-ask.mjs     # chat: spotting the contact turn
+node scripts/check-contact-ask.mjs     # chat: the contact form's validation (half dormant)
 node scripts/check-emphasis.mjs        # chat: unwrapping **bold**, keeping "T&C apply*"
 
 go build ./... && go vet ./... && go test ./...
@@ -80,12 +83,14 @@ make deploy              # railway up --service insuremynation --ci
 ```
 
 There is no lint or test framework in the frontend and it does not need one. The
-`scripts/check-*.mjs` files are plain `node` + `assert` and cover the pieces of the
-chat client that fail *silently* — a broken parser stops rendering chips (or worse, eats the
-text it mistook for a menu), broken attribution reports nothing, a reworded contact turn
-loses the form, and a broken emphasis unwrap leaks asterisks or swallows a footnote marker.
-Run them after touching any of it. Everything else in the
-frontend is verified visually; the backend has build, vet and test.
+`scripts/check-*.mjs` files are plain `node` + `assert` and cover the pieces of the chat
+client that fail *silently* — a misread response turns a polite escalation into a red error
+box (or a wrong API key into an assistant with nothing to say), a broken parser stops
+rendering chips or eats the text it mistook for a menu, broken attribution reports nothing,
+and a broken emphasis unwrap leaks asterisks or swallows a footnote marker. Run them after
+touching any of it. `check-contact-ask.mjs` is half dormant — see *The contact ask, when it
+comes back*. Everything else in the frontend is verified visually; the backend has build, vet
+and test.
 
 ## The frontend
 
@@ -146,60 +151,83 @@ reshapes it through `[data-r="..."]` media queries. That structure is kept intac
 
 ## The chat
 
-**The UI is ours; everything behind it is imagine.bo's.** `useHeadlessChat.js` calls
-`orchestrator.imagine.bo` **direct from the browser** against the contract in
-`HEADLESS_CHAT_INTEGRATION.md`. They own the funnel questions, the system prompt and the
-lead capture — their assistant asks for the visitor's contact details itself and writes the
-lead to their CRM.
+**The panel is ours; the answers come from our own corpus RAG.** `useHeadlessChat.js` posts to
+a same-origin `POST /v1/ask`, which `backend/internal/handler/ask.go` forwards to
+`insurenation-rag-production.up.railway.app` with a bearer token. The browser never sees a
+credential, and that is the whole reason the proxy exists: this is a Vite build, so anything in
+a `VITE_*` variable is compiled into the public bundle and is not a secret.
 
-We used to run our own proxy for this: a Go service at `/v1/*` holding a RAG API key, with the
-funnel in `journeys.js` and prompts in `chat.go`. All of it is deleted, because the headless
-integration has **no key to hide** — so there was nothing left for a backend of ours to do.
-`git log` has it if the reasoning is ever needed; do not resurrect it to add a feature the
-orchestrator should own.
+That proxy was deleted once, and it is back for exactly the reason its deletion note gave. The
+previous integration — imagine.bo's orchestrator, called **direct from the browser** with a
+public widget token — carried no key to hide, so there was nothing for a Go service to hold.
+The corpus RAG carries one. `HEADLESS_CHAT_INTEGRATION.md` and the three root workflow JSONs
+describe that older integration and are kept for history; the site no longer calls it, and
+`git log` has the funnel-in-`journeys.js` version before that.
+
+Behind `/v1/ask`: 110,307 passages from 4,057 insurer documents across 19 insurers — policy
+wordings, prospectuses, Customer Information Sheets. The guardrails are **server-side** and
+must not be re-implemented here: ~600 characters of plain text, no premiums or waiting-period
+durations, insurers we do not place refused by name, and an escalation rather than a guess.
 
 What is left, and what each piece is for:
 
 | file | job |
 | --- | --- |
-| `useHeadlessChat.js` | the three-endpoint client: sessions, turns, errors, terminal state |
-| `pageContext.js` | the `context_variables` that decide where the funnel opens, and the attribution |
+| `useHeadlessChat.js` | the client: one turn at a time, history from React state, errors |
+| `askResponse.js` | answer-or-error for one response, and the visitor-facing error strings |
+| `pageContext.js` | which page, and first-seen ad attribution — sent as the `data` map |
 | `splitOptions.js` | turns the column-0 `- ` lines of a reply into chips |
 | `unwrapEmphasis.js` | drops paired `**`/`__` so the bubble does not show asterisks |
-| `contactAsk.js` / `ContactForm.jsx` / `countries.js` | the contact turn as fields instead of a paragraph |
-| `ChatPanel.jsx` / `Message.jsx` | the panel, per the WhatsApp-style design |
+| `contactAsk.js` / `ContactForm.jsx` / `countries.js` | the contact turn as fields instead of a paragraph — **parked, see below** |
+| `ChatPanel.jsx` / `Message.jsx` | the panel and bubbles, per the WhatsApp-style design; `Message` also renders citations |
 | `ChatWidget.jsx` | launcher, open/close, Escape |
 | `RobotGlyph.jsx` | the handoff's `chatbot.svg` as inline JSX — launcher (white), header (brand blue) |
 
-Six things that are easy to get wrong:
+Seven things that are easy to get wrong:
 
-- **It only works on an allowlisted origin.** Not a setting of ours — imagine.bo keeps the
-  list, and everything else gets `403 Domain not allowed`. `localhost:5173` is **not** on it
-  today, so the chat cannot be exercised locally; you get the "chat is unavailable" state.
-  Ask them before relying on any new host.
+- **The chat captures no leads.** The orchestrator ran a funnel and asked for name, mobile and
+  email itself; ours answers questions and asks for nothing, and every other form on the site is
+  `onClick={() => setSent(true)}` with no fetch. So the website channel currently produces
+  **zero** CRM leads, deliberately, until the contact ask is rebuilt on this side. That is why
+  `contactAsk.js`, `ContactForm.jsx`, `countries.js` and `check-contact-ask.mjs` are still in
+  the tree, and why `session_id` and `data` already ride on every request: the RAG buffers a
+  conversation and reports it the moment a phone number appears. Do not read the empty tree as
+  "leads were never here", and do not treat the flat CRM number as a broken integration.
+- **An `answer` is an answer whatever the status code** (`askResponse.js`). The Go proxy's own
+  502 and 503 bodies carry customer-safe wording plus `escalate: true`, and `escalate` on a 200
+  is the assistant declining to guess — a normal reply. Only a response with **no** `answer` is
+  an error, which is what an upstream 401 from a wrong key looks like, since `ask.go` relays it
+  verbatim. Get this backwards and either a polite escalation renders as a red error box or a
+  real failure renders as an answer. `node scripts/check-ask-response.mjs` pins all four
+  branches. Two of its strings are load-bearing: `ErrorNotice` matches `/too many/i` to suppress
+  its "you can also call us" footer, and any message naming the number must use `PHONE` from
+  `data/site.js` verbatim or the notice prints it twice.
+- **The origin allowlist is ours now.** `RAG_ALLOWED_ORIGINS` on the Go service, not a list
+  someone else keeps — a refused origin gets `403 {"error":"origin not allowed","origin":"…"}`
+  with the origin echoed back. It guards an endpoint that spends an embedding and a completion
+  per call. Unset, it **fails open** with a startup warning, so check the deploy log says
+  `/v1 restricted to N origin(s)`. `localhost:5173` needs no entry: `vite.config.js` proxies
+  `/v1` to `:8080`, so the call is same-origin — **the chat is testable locally for the first
+  time**, which it never was under the orchestrator.
 - **`landed_from` and `referrer` are first-seen, not current** (`pageContext.js`). A visitor
   lands on `/health-insurance?utm_source=google`, browses to `/about`, then opens the chat —
   read live, the UTMs are already gone and the attribution is empty on exactly the journeys
-  worth measuring. `node scripts/check-page-context.mjs` covers it.
-- **Chips are parsed out of the reply** (`splitOptions.js`), from the last contiguous run of
-  `- ` lines **at column 0**. Indentation is the test that separates a menu from a nested
-  fact: the bot writes plan comparisons as a `Cover:` line with indented dashes under it, and
-  while the parser accepted those, every fact became a chip *and* was cut from the body — the
-  visitor got a bare label. The integration guide's own version of that parser walks up from the final line
-  and stops at the first non-option — which finds nothing, because the live opener ends with
-  a line of prose *after* the list. `node scripts/check-split-options.mjs` pins the real
-  shape. But when a response carries a populated `options` array, **those win and the
-  heuristic is skipped**: they are server-declared choices, and the tapped option's `id`
-  goes back as `reply_id` — on a consent option (the WhatsApp ask) that id is the only
-  thing that writes the consent row; the title alone reads fine and records nothing. Typed
-  answers send `reply_id: null`, and so does the `session_expired` resend.
-- **The contact turn is spotted by its wording** (`contactAsk.js`), because nothing in the
-  response says "I am asking for details now". Their prompt is theirs to reword, so this fails
-  soft to the composer and `check-contact-ask.mjs` holds the current text. Ask them for a
-  marker on the response and this whole file goes away.
-- **A finished conversation removes the composer** rather than disabling it. The session is
-  deleted their side, so sending into it opens a *second* conversation — and since a
-  conversation ends in a lead, that is a duplicate in the CRM.
+  worth measuring. It goes out as `data`, which `ask.go` binds as `map[string]string` and
+  forwards to the CRM, so every value there must be a string or the whole turn 400s.
+  `node scripts/check-page-context.mjs` covers the stamping.
+- **Chips are a safety net, not a feature.** `splitOptions.js` still runs on every reply, taking
+  the last contiguous run of `- ` lines **at column 0** — indentation is the test that separates
+  a menu from a nested fact, and `node scripts/check-split-options.mjs` pins the shape against a
+  real orchestrator opener. But the corpus service is specified never to write a flush dash
+  list, so in practice this finds nothing and no chip is ever rendered. `ChatPanel`'s funnel
+  shortcuts ("Change policy type", "Request callback") hang off the same dead path. Leave both;
+  they cost nothing and cover a reply that ever does carry a list.
+- **Citations are safe to show, and did not used to be.** `Message.jsx` renders `doc_title` per
+  citation, linked to the insurer's own PDF. The comment that stood in that slot explained why
+  there was no citation line: the knowledge base was one generated file, so the only nameable
+  source was `insuremynation-website.txt`, an internal build artefact. A citation now names a
+  real insurer document. `restricted` gets no badge — it only means we do not quote premiums
+  from that document, and saying so invites the question the guardrail exists to avoid.
 - **`Message.jsx` renders text as a child, never `innerHTML`**, with `pre-wrap`: replies carry
   newlines and are explicitly not markdown, so nothing must run them through a renderer. The
   model writes `**Cover**` regardless of what the prompt forbids, so `unwrapEmphasis.js`
@@ -209,24 +237,38 @@ Six things that are easy to get wrong:
   `splitOptions` would never see them again. The transform runs on assistant text only; the
   visitor's own words are echoed exactly as typed.
 
-**Never add a *second* ask for contact details.** Their assistant collects name, mobile and
-email itself, two turns in, and that lead is theirs. What the panel does have is a form that
-answers *their* question — `ContactForm.jsx`, shown when `isContactAsk()` matches the reply,
-because that one turn carries no `- ` options and so leaves the visitor typing three kinds of
-data into one box on a phone. It captures nothing: submitting sends an ordinary chat message
-(`name\n+91 number\nemail`) and the CRM record is still written on their side. Under the
-fields sits a consent checkbox, ticked by default, mirroring the consent sentence in their
-bubble; unticking it does not block the send — it appends an explicit refusal line to the
-message instead. The composer
-stays visible underneath, which is both their rule and the fallback when the detector misses —
-`node scripts/check-contact-ask.mjs` pins the live wording so a reword fails a check instead of
-silently removing the form.
+Two things that went away with the orchestrator, so that a reader of older code knows they are
+gone rather than broken: there is **no server-issued session** (no token, no `reply_id`, no
+`session_expired` resend — `history` is sent from React state every turn and the service stores
+nothing), and there is **no terminal state**. `finished` is a constant `false`; `FinishedNotice`
+is left wired for whatever ends a conversation next. It is deliberately not restored from
+storage, because a stale `true` in a returning tab would remove the composer for good.
+
+### The contact ask, when it comes back
+
+Not built yet. When it is: trigger `ContactForm` from **our** state — `escalate: true`, or a
+fallback after a few substantive turns — never from the assistant's wording. `isContactAsk()`
+matches the orchestrator's consent sentence, prose the corpus service never writes, so it is
+dormant and its half of `check-contact-ask.mjs` is dormant with it. `formatContact` and
+`contactError` in the same file are **not** dormant: `ContactForm.jsx` imports both.
+
+`ContactForm` submits formatted text today and needs one extra argument to hand back the
+structured `{name, dial, phone, email}`; `ChatPanel`'s `submit` already forwards a second
+argument, and `ask.go` already relays `phone`, `name`, `email` and `data`. Nothing in the Go
+service has to change. There is **no consent checkbox** on the form despite what older notes
+say — the orchestrator asked that permission itself, one turn later, as server-declared buttons.
 
 ### The funnel
 
-The funnel is **theirs to run and ours to version**. The three root JSONs are exports of one
-dograh/imagine.bo workflow, `InsureNation (Website Chatbot) - Leads` — 22 nodes, and despite
-the filename **none of them holds lead data**:
+**The website no longer runs this**, and that is the first thing to know before reading it. The
+funnel belonged to the orchestrator the chat used to call; the corpus RAG that replaced it asks
+no questions. The workflow is still live on imagine.bo's side for their other channels, and the
+exports are still ours to version, so the files stay — but nothing described below reaches a
+visitor through this repo any more.
+
+The three root JSONs are exports of one dograh/imagine.bo workflow,
+`InsureNation (Website Chatbot) - Leads` — 22 nodes, and despite the filename **none of them
+holds lead data**:
 
 - `startCall` S0 Welcome & Router → `agentNode` S1 Answer & Triage → S1b Contact & Consent
   (early) → S1c WhatsApp Permission → the six per-product qualifications F1 Health … F6 Marine,
@@ -243,13 +285,15 @@ the filename **none of them holds lead data**:
 - These are **import/export artifacts of their builder**, not something this repo compiles or
   serves. Nothing reads them at build or run time. Change the workflow on their side, export,
   commit the new file — hand-editing the JSON changes nothing live.
-- What the client keys off is decided in these nodes: the consent option `id` that
-  `useHeadlessChat` sends back as `reply_id`, the `crm_funnel_flag` values, and the exact
-  contact-turn wording `contactAsk.js` sniffs for. Reword a node, re-run the check scripts.
+- The client used to key off these nodes — the consent option `id` echoed as `reply_id`, the
+  `crm_funnel_flag` values, the exact contact-turn wording `contactAsk.js` sniffs for. None of
+  that is wired now. `isContactAsk` is the last trace and it is dormant.
 
-The widget token (`wgt_…` in `useHeadlessChat.js`) ships in the page **by design** — it is a
-public widget token and the origin allowlist is what guards the endpoint. Do not treat it as a
-leaked secret and do not build a backend to hide it.
+The `wgt_…` widget token is gone from the tree with the transport that used it. It was a
+**public** widget token, guarded by an origin allowlist rather than by secrecy, so finding it in
+`git log` is not finding a leaked credential. The key that replaced it is not like that at all:
+`RAG_API_KEY` is a real secret, it lives in the Go service's environment, and it must never
+appear in a `VITE_*` variable — that would compile it into the public bundle.
 
 ### Mobile
 
@@ -284,15 +328,34 @@ It serves the embedded site and answers a healthcheck. That is all it does.
 - `CLIENT_IP_HEADER` still feeds `middleware.RateLimiter`, and **must** name a header the edge
   *overwrites* (`X-Real-Ip` on Railway). Naming one the edge does not set is worse than leaving
   it blank: every caller can then claim any IP.
-- The service reads exactly four env vars: `PORT` and `ENV` through `config.LoadConfig`
-  (defaults `8080` / `production`), and `CANONICAL_HOST` and `CLIENT_IP_HEADER` straight off
-  `os.Getenv` in `server.go`. `config.Config` has no field for the latter two — grep, don't
-  assume the struct is the whole list.
-- The `RAG_*` variables are dead — nothing reads them. Remove them from the Railway service.
+- `/v1/ask` is the chat proxy (`handler/ask.go`). It holds `RAG_API_KEY`, adds the bearer
+  header, and relays the corpus RAG's status and body **unchanged** — answer shaping,
+  citation selection and the premium guardrail are the RAG's, and a second copy here would
+  be a second place for them to drift. It binds `{q, history, insurer, line, session_id,
+  phone, name, email, data}` and silently drops anything else, so a new field on the request
+  needs a struct field first.
+- `/v1` carries its own `RateLimiter(15, 1m)` rather than the global one: each call spends an
+  embedding and a completion, and the global allowance is sized for page requests. Two
+  caveats the code does not shout about — `middleware.CORS()` aborts every `OPTIONS` at
+  engine level with `Access-Control-Allow-Origin: *` **before** the `/v1` group runs, so
+  preflights bypass both the allowlist and both limiters (harmless today: the site's own
+  call is same-origin and issues no preflight); and the limiter's bucket maps never evict.
+- The service reads seven env vars. `PORT` and `ENV` through `config.LoadConfig` (defaults
+  `8080` / `production`); `CANONICAL_HOST` and `CLIENT_IP_HEADER` straight off `os.Getenv` in
+  `server.go`; `RAG_URL` and `RAG_API_KEY` per request in `handler/ask.go`; and
+  `RAG_ALLOWED_ORIGINS` once at boot in `middleware/alloworigins.go`. `config.Config` has a
+  field for none of the last five — grep, don't assume the struct is the whole list.
+- **The `RAG_*` variables are live again.** Older notes said to delete them from the Railway
+  service, which was true while the browser called imagine.bo direct. Removing them now takes
+  the chat down: without `RAG_URL` and `RAG_API_KEY` every turn answers 503, and without
+  `RAG_ALLOWED_ORIGINS` the endpoint accepts any origin on the internet and pays for it.
+  `RAG_KB_ID` really is dead — nothing reads it.
 
-`frontend/kb-corpus.txt` and `scripts/export-kb.mjs` are kept: the corpus is still how the
-site's own copy reaches a knowledge base, but ingesting it is imagine.bo's side of the line
-now, so re-run the script after copy edits and ask them to re-ingest.
+`frontend/kb-corpus.txt` and `scripts/export-kb.mjs` are kept, but **the website chat does
+not read them.** Answers come from the corpus RAG, whose documents are the insurers' own.
+The file is still how this site's copy reaches a knowledge base at all, and the dograh
+workflow is a separate integration that may still ingest it — so re-run the script after copy
+edits and ask whoever owns that side to re-ingest. Do not assume anything picks it up alone.
 
 ## Known content bug
 

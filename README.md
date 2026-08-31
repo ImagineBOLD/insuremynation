@@ -1,11 +1,10 @@
 # InsureMyNation
 
 The InsureNation insurance site. Two directories, **one** deployable: the React site is
-built and embedded into the Go binary, which serves it. The chat assistant is imagine.bo's,
-called direct from the browser; the panel is ours.
+built and embedded into the Go binary, which serves it. The chat answers from our own corpus
+RAG over a same-origin `/v1/ask` that the Go service proxies.
 
-Live at **https://insuremynation.imaginebo.app** — the canonical host, and the only one the
-chat works on. See *It only works on an allowlisted origin* below.
+Live at **https://insuremynation.imaginebo.app** — the canonical host.
 
 ```
 frontend/   React site (Vite + React 18 + React Router 6 + Framer Motion) + the chat panel
@@ -24,9 +23,8 @@ cd frontend && npm install && npm run dev      # http://localhost:5173
 cd backend  && go run ./cmd/server             # http://localhost:8080
 ```
 
-The Go service is only needed to check the embedded build; `npm run dev` alone covers
-frontend work. Neither gives you a working chat locally — `localhost:5173` is not on
-imagine.bo's origin allowlist, so the panel reports the assistant as unavailable.
+`npm run dev` alone covers frontend work, and Vite forwards `/v1` to `localhost:8080`, so run
+the Go service too — with `RAG_URL` and `RAG_API_KEY` set — if you want a working chat.
 
 | script (in `frontend/`) | what it does |
 | --- | --- |
@@ -37,6 +35,7 @@ imagine.bo's origin allowlist, so the panel reports the assistant as unavailable
 | `node scripts/export-kb.mjs` | regenerate the chatbot's knowledge-base corpus |
 | `node scripts/check-split-options.mjs` | chat: the reply-to-chips parser |
 | `node scripts/check-page-context.mjs` | chat: first-seen ad attribution |
+| `node scripts/check-ask-response.mjs` | chat: answer-or-error, per `/v1/ask` response |
 
 In `backend/`: `go build ./...`, `go vet ./...`, `go test ./...`.
 
@@ -124,47 +123,54 @@ scale and colour the design specifies, so the page at rest is unchanged.
 
 # The chat
 
-The assistant is imagine.bo's. The **UI** is ours, in
-`frontend/src/components/chat/`; it talks to `orchestrator.imagine.bo` direct from the
-browser against the contract in [HEADLESS_CHAT_INTEGRATION_v2.md](HEADLESS_CHAT_INTEGRATION_v2.md).
-They own the funnel questions, the system prompt and the lead capture — their assistant
-asks the visitor for name, mobile and email itself and writes the lead to their CRM.
+The panel is in `frontend/src/components/chat/`. It posts to a same-origin `POST /v1/ask`,
+which the Go service forwards to our corpus RAG with a bearer token the browser never sees —
+110,307 passages from 4,057 insurer documents, so it answers clause-level questions
+(exclusions, claims procedure, definitions) that the old marketing-copy knowledge base could
+not. Each answer comes back with up to four citations naming a real insurer document, linked
+to the insurer's own PDF.
 
-There is no chat API on this service. There used to be: a proxy at `/v1/*` holding a RAG
-API key, with our own qualification funnel and per-product prompts. The headless
-integration carries **no key**, so the one reason that backend existed no longer applied
-and it was deleted. `git log` has it.
+The service is stateless: no session token, no cookies. `history` is sent from the browser
+every turn, so a restart or a second replica cannot lose a conversation.
+
+**It captures no leads.** It replaced imagine.bo's orchestrator, which ran the funnel and
+asked the visitor for name, mobile and email itself, and nothing on this side asks yet —
+every other form on the site is decorative. `ContactForm.jsx`, `contactAsk.js` and
+`countries.js` are parked in the tree for that next change; `session_id` and `data` already
+go out on every request so the RAG can report the lead the moment a phone number does.
 
 | file | job |
 | --- | --- |
-| `useHeadlessChat.js` | the client: sessions, one turn at a time, errors, terminal state |
-| `pageContext.js` | `context_variables` — which page, and first-seen ad attribution |
-| `splitOptions.js` | the `- ` lines of a reply become tappable chips |
-| `ChatPanel.jsx`, `Message.jsx`, `ChatWidget.jsx` | the panel, bubbles and launcher |
+| `useHeadlessChat.js` | the client: one turn at a time, history, errors |
+| `askResponse.js` | answer-or-error, per response — an `answer` is an answer whatever the status |
+| `pageContext.js` | which page, and first-seen ad attribution; sent as `data` |
+| `splitOptions.js` | the `- ` lines of a reply become tappable chips (a safety net now — the service never writes one) |
+| `ChatPanel.jsx`, `Message.jsx`, `ChatWidget.jsx` | the panel, bubbles, citations and launcher |
 
-Two checks cover the parts that fail *silently* — a broken parser just stops rendering
-chips, broken attribution just reports nothing:
+Three checks cover the parts that fail *silently* — a broken parser just stops rendering
+chips, broken attribution just reports nothing, and a misread response turns a polite
+escalation into a red error box:
 
 ```bash
 cd frontend
 node scripts/check-split-options.mjs
 node scripts/check-page-context.mjs
+node scripts/check-ask-response.mjs
 ```
 
-### It only works on an allowlisted origin
+### The origin allowlist
 
-imagine.bo keeps a list of domains, and every other origin gets
-`403 {"detail":"Domain not allowed: …"}`. The panel reports that as "Chat is unavailable on
-this page. Please call +91 99101 69789." — correct behaviour, but it means the assistant is
-dead anywhere unlisted, with the page otherwise looking fine.
+`RAG_ALLOWED_ORIGINS` on the Go service decides which browser origins may call `/v1`, and a
+refused one gets `403 {"error":"origin not allowed","origin":"…"}` — the origin is echoed
+back, so a missing entry takes one request to diagnose. It exists because every call there
+spends money on an embedding and a completion, and the service's blanket
+`Access-Control-Allow-Origin: *` is right for public pages and wrong in front of that.
 
-| origin | on the list |
-| --- | --- |
-| `https://insuremynation.imaginebo.app` | yes — the canonical host |
-| `https://insuremynation-production.up.railway.app` | no |
-| `http://localhost:5173` | no — so the chat cannot be exercised locally |
-
-Ask them before relying on a new host. Point ads at the canonical domain only.
+This is ours now, not imagine.bo's. Adding a host is a Railway variable rather than a request
+to someone else, and `localhost:5173` needs no entry at all — Vite proxies `/v1` so the call
+is same-origin. Unset, the middleware fails open with a startup warning; production must set
+it. [HEADLESS_CHAT_INTEGRATION.md](HEADLESS_CHAT_INTEGRATION.md) documents the orchestrator
+the site used to call, and is kept for history only.
 
 ### Mobile
 
@@ -204,9 +210,17 @@ cd ../backend && rm -rf internal/dist && cp -r ../frontend/dist internal/dist
 go build -o bin/imagine_backend ./cmd/server && ./bin/imagine_backend
 ```
 
-For day-to-day frontend work use `npm run dev`. No proxy is needed any more — the chat is
-cross-origin by design — but see the allowlist note above: on `localhost:5173` the panel
-will report the chat as unavailable.
+For day-to-day frontend work use `npm run dev`. `vite.config.js` forwards `/v1` to
+`localhost:8080`, so run the Go service alongside it if you want the chat:
+
+```bash
+cd backend && RAG_URL=https://insurenation-rag-production.up.railway.app RAG_API_KEY=… go run ./cmd/server
+```
+
+This is newer than it looks. While the chat called imagine.bo direct from the browser it
+could not be exercised locally at all — their origin allowlist has no localhost entry, so
+every turn came back `403` and the panel said the chat was unavailable. It is our own
+service now, and nothing has to allowlist a dev port.
 
 ### Environment
 
@@ -216,9 +230,15 @@ will report the chat as unavailable.
 | `PORT` | no | defaults to `8080` (Railway sets it) |
 | `ENV` | no | `production` switches gin to release mode |
 | `CLIENT_IP_HEADER` | behind a proxy | header naming the real client. **On Railway set `X-Real-Ip`.** |
+| `RAG_URL` | **yes** | the corpus RAG service, `https://insurenation-rag-production.up.railway.app`. Unset, `/v1/ask` answers 503 with a "call us" message. |
+| `RAG_API_KEY` | **yes** | bearer token for that service — the same string it holds itself. Read it off the `insurenation-rag` service; never put it in a `VITE_*` variable, which compiles into the public bundle. |
+| `RAG_ALLOWED_ORIGINS` | **yes in production** | comma-separated browser origins allowed to call `/v1`. Unset, it accepts any origin and logs a warning — and every call there costs an embedding and a completion. |
 
-The `RAG_*` variables are dead — nothing reads them since the proxy was deleted. Remove
-them from the Railway service.
+Those three are the whole reason `/v1/ask` exists. The chat used to call imagine.bo direct
+from the browser with a public widget token, so there was no key for this service to hold and
+the proxy was deleted; the corpus RAG does have one, and a Vite build cannot keep a secret.
+Check the deploy log says `/v1 restricted to N origin(s)` and not
+`WARN: RAG_ALLOWED_ORIGINS is unset`.
 
 `CLIENT_IP_HEADER` still feeds the global rate limiter, and the value must be a header the
 edge **overwrites**, not merely one that sounds infrastructural. Naming a header the edge
@@ -255,5 +275,9 @@ Re-run it after any copy change:
 cd frontend && node scripts/export-kb.mjs
 ```
 
-Ingesting it is now imagine.bo's side of the line — ask them to re-ingest, and to confirm
-which knowledge base their orchestrator actually answers from.
+**The website chat no longer reads it.** Answers come from the corpus RAG, whose 4,057
+documents are the insurers' own — policy wordings and prospectuses, not our marketing copy.
+The file is kept because it is still how this site's copy reaches a knowledge base at all,
+and the dograh workflow (the voice channel, and the three root JSONs) is a separate
+integration that may still be ingesting it. Re-run the script after a copy change and ask
+whoever owns that side to re-ingest; do not assume anything picks it up automatically.

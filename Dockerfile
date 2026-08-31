@@ -32,8 +32,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o bin/imagine_backend ./cmd/server
 
 # Final stage.
 FROM alpine:latest
-# ca-certificates is not optional: this service's whole job is an outbound HTTPS
-# call to app.imagine.bo, which fails with x509 errors on a bare alpine.
+# ca-certificates is not optional: /v1/ask is an outbound HTTPS call to the corpus
+# RAG service, which fails with x509 errors on a bare alpine.
 RUN apk add --no-cache ca-certificates tzdata
 WORKDIR /app
 COPY --from=builder /app/bin/imagine_backend ./bin/

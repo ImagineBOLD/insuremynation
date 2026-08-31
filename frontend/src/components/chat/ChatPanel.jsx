@@ -87,6 +87,12 @@ export default function ChatPanel({ chat, onClose }) {
    * mid-question brings the form back with the restored transcript, and the "Thanks, Rahul!"
    * that follows dismisses it.
    *
+   * **Dormant.** `isContactAsk` matches the orchestrator's own consent sentence, and the
+   * corpus RAG that replaced it answers questions rather than running a funnel — so it never
+   * writes that sentence and this is never true. Left wired rather than removed: rebuilding
+   * the contact ask on our side is the next change, and only what *decides* to render the
+   * form moves. The form itself, and everything under it, is unchanged.
+   *
    * Declared above the scroll effect because that effect lists it as a dependency, and a
    * dependency array is evaluated during render.
    */
@@ -101,9 +107,10 @@ export default function ChatPanel({ chat, onClose }) {
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, pending, error, askingContact]);
 
-  // `replyId` only ever comes from a tapped server option; typed text and the contact
-  // form send null, which the orchestrator reads as "the visitor typed this". `extra`
-  // carries the contact form's consent boolean onto the POST body.
+  // `replyId` and `extra` are vestigial: they belonged to the orchestrator's server-declared
+  // options and the contact form's consent flag, and `send` now ignores both. Kept on the
+  // signature because the callers below already pass them and the contact ask will want the
+  // second one back.
   const submit = (text, replyId = null, extra) => {
     const value = (text ?? draft).trim();
     if (!value || pending) return;
@@ -160,10 +167,18 @@ export default function ChatPanel({ chat, onClose }) {
       >
         <DayDivider />
 
-        {/* No locally rendered greeting: the opening message is a real message, and it
-            arrives from `init`. */}
+        {/* No locally rendered greeting *here*: the opening message is a real message in the
+            transcript, seeded by `init`. It is written client-side now rather than fetched —
+            there is nothing to ask the service on open — but it is still a message, so it
+            persists, scrolls and reads like one. */}
         {messages.map((m) => (
-          <Message key={m.id} role={m.role} text={m.text} streaming={m.streaming} />
+          <Message
+            key={m.id}
+            role={m.role}
+            text={m.text}
+            streaming={m.streaming}
+            citations={m.citations}
+          />
         ))}
 
         {error && <ErrorNotice error={error} onRetry={() => { clearError(); submit(error.retry); }} />}

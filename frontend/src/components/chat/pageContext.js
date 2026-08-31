@@ -1,10 +1,12 @@
 /**
- * The `context_variables` the orchestrator opens a conversation with.
+ * Where the visitor is, and where they came from.
  *
- * The hosted widget collects these automatically; a custom UI has to send them, and the
- * assistant is noticeably worse without them — on /health-insurance it goes straight to
- * "Who would the cover be for?" instead of asking which cover, which is the point of
- * running ads per product line.
+ * This used to be the orchestrator's `context_variables`, which opened the funnel on the
+ * right product. There is no funnel any more, and it earns its place for the other half of
+ * what it always carried: it goes out as `data` on every `/v1/ask`, which is the map the RAG
+ * forwards to the CRM on the lead. Nothing reads it until the contact ask is rebuilt on this
+ * side — but attribution cannot be reconstructed after the fact, so it is sent from the
+ * first turn rather than switched on later.
  *
  * Its own module, apart from the hook, so it can be exercised without React: `landing()`
  * is the one piece of state here that is wrong in a way nobody would notice until the
@@ -60,8 +62,12 @@ export function landing() {
 }
 
 /**
- * `product` is only the query parameter, for a home-page ad landing (/?product=health).
- * The pathname carries the rest and the orchestrator resolves it server-side.
+ * `product` is only the query parameter, for a home-page ad landing (/?product=health); the
+ * pathname carries the rest.
+ *
+ * Every value is a string, which is not incidental — the Go proxy binds this as
+ * `map[string]string` (`backend/internal/handler/ask.go`) and a number or a boolean added
+ * here would fail the bind and 400 the whole turn, not just drop the field.
  */
 export function pageContext() {
   return {

@@ -9,6 +9,13 @@
  * live wording so a reword surfaces here instead.
  *
  * The strings below are verbatim from a real conversation on the bike page.
+ *
+ * **Half of this is dormant.** The site no longer calls imagine.bo, so the prose those
+ * strings came from will not arrive again and `isContactAsk` is never true in the running
+ * app — a green run here is not coverage of anything live. Do not read it as one, and do not
+ * delete it either: rebuilding the contact ask on our side is the next change, and the
+ * `formatContact` and `contactError` cases below cover code `ContactForm.jsx` still imports
+ * and still runs the moment that form is shown again.
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
