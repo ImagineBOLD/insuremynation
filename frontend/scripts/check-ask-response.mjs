@@ -113,6 +113,21 @@ assert.equal(
   false
 );
 
+// ---------------------------------------------------------------- reason passes through
+
+// `reason` is which stage the service answered from, and 'funnel' is a hard veto on the contact
+// form: a turn-count trigger alone put the form up between "where are you with the policy" and
+// "which car is it", asking for a number before the visitor had been shown anything. Contact
+// comes last in this flow — the shortlist earns it.
+assert.equal(readAnswer(200, { answer: 'x', reason: 'funnel' }, PHONE).reason, 'funnel');
+assert.equal(readAnswer(200, { answer: 'x', reason: 'shortlist' }, PHONE).reason, 'shortlist');
+assert.equal(readAnswer(200, { answer: 'x', reason: 'contact' }, PHONE).reason, 'contact');
+
+// Null, never undefined — a document answer carries no stage, and the hook compares it directly.
+assert.equal(readAnswer(200, { answer: 'x' }, PHONE).reason, null);
+assert.equal(readAnswer(200, { answer: 'x', reason: 42 }, PHONE).reason, null);
+assert.equal(readAnswer(200, null, PHONE).reason, null);
+
 // ---------------------------------------------------------------- error wording
 
 // ErrorNotice drops its "you can also call us" footer when the message says to wait instead.

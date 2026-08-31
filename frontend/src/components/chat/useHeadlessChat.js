@@ -54,8 +54,9 @@ const STATE_KEY = 'insurenation-chat-state';
  * panel must not open empty.
  */
 const GREETING =
-  'Hi! I can answer questions about what our insurers cover — inclusions, exclusions, claims ' +
-  'and definitions, from the policy documents themselves. What would you like to know?';
+  'Hi! I can answer what our insurers actually cover — inclusions, exclusions, claims and ' +
+  'definitions, straight from the policy documents. Which cover are you looking for?\n' +
+  '- Health\n- Life\n- Car\n- Bike\n- Travel\n- Marine (cargo or hull)';
 
 const newSessionId = () =>
   globalThis.crypto?.randomUUID?.() ?? `s${Date.now()}-${Math.round(Math.random() * 1e9)}`;
@@ -90,10 +91,11 @@ const makeId = () => `m${nextId++}`;
 /**
  * An assistant reply: the bubble text, its citations, and any chips it offered.
  *
- * `splitOptions` is kept as a safety net rather than a working feature. The service is
- * specified never to write a flush column-0 `- ` list, so in practice this finds nothing — but
- * if a reply ever does, the panel behaves the way it always did instead of printing a bare
- * list into a bubble.
+ * `splitOptions` is a working feature again. It was dead for as long as the assistant only
+ * answered questions — a document answer is prose and never carries a flush column-0 `- ` list,
+ * so this found nothing. The qualification funnel emits its option lists in exactly that shape
+ * on purpose, and the greeting opens with the six cover lines the same way, so most turns before
+ * the shortlist now render as tappable chips instead of a list printed into a bubble.
  */
 function assistantMessage(text, citations) {
   const { body, options } = splitOptions(text);
@@ -128,6 +130,7 @@ export function useHeadlessChat() {
    * a chat widget gets closed permanently.
    */
   const [escalated, setEscalated] = useState(false);
+  const [reason, setReason] = useState(null);
   const [contactDone, setContactDone] = useState(() => Boolean(restored.current?.contactDone));
 
   // Abort anything in flight when the component goes away, so a closed tab does not leave a
@@ -237,6 +240,7 @@ export function useHeadlessChat() {
         }
 
         setEscalated(read.escalate);
+        setReason(read.reason);
         // The contact turn is the last one that needs the form.
         if (contact?.phone) {
           setContactDone(true);
@@ -277,6 +281,7 @@ export function useHeadlessChat() {
     setPending(false);
     sessionRef.current = newSessionId();
     setEscalated(false);
+    setReason(null);
     setContactDone(false);
     const next = [assistantMessage(GREETING)];
     setMessages(next);
@@ -292,15 +297,28 @@ export function useHeadlessChat() {
       : null;
 
   /**
-   * Whether to show the contact form. Two triggers, both from our own state rather than from
-   * anything the assistant wrote: it escalated (it has just offered a callback, so the form is
-   * the obvious next step), or the visitor has asked enough questions to be worth calling.
+   * Whether to show the contact form.
+   *
+   * **Never during the funnel.** Contact comes last in this flow — that is the whole point of it:
+   * the shortlist earns the phone number rather than gating it. A turn-count trigger alone put
+   * the form up in the middle of car qualification, between "where are you with the policy" and
+   * "which car is it", which both interrupts the questions and asks for a number before we have
+   * shown the visitor anything. The service tells us the stage; `funnel` is a hard veto.
+   *
+   * What is left is the three moments the form belongs: the shortlist (the assistant has just
+   * named plans and asked for a number), an escalation (it has just offered a callback), or a
+   * visitor who has asked several questions and never entered a funnel at all.
    *
    * Not while a turn is in flight, not on top of an error, and never again once done.
    */
   const asked = messages.filter((m) => m.role === 'user').length;
   const askContact =
-    !contactDone && !pending && !error && !last?.streaming && (escalated || asked >= CONTACT_AFTER_TURNS);
+    !contactDone &&
+    !pending &&
+    !error &&
+    !last?.streaming &&
+    reason !== 'funnel' &&
+    (escalated || reason === 'shortlist' || asked >= CONTACT_AFTER_TURNS);
 
   return {
     messages,

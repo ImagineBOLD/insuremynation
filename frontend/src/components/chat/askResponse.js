@@ -58,12 +58,21 @@ export function errorText(status, phone) {
  */
 export function readAnswer(status, data, phone) {
   const escalate = Boolean(data?.escalate);
+  // Which stage the service answered from: 'funnel' | 'shortlist' | 'contact' | 'scope' | null.
+  // It is what decides when the contact form may appear, and the funnel turns are the ones it
+  // must never appear during.
+  const reason = typeof data?.reason === 'string' ? data.reason : null;
   const answer = typeof data?.answer === 'string' ? data.answer.trim() : '';
   if (answer) {
-    return { answer, citations: Array.isArray(data.citations) ? data.citations : [], escalate };
+    return {
+      answer,
+      citations: Array.isArray(data.citations) ? data.citations : [],
+      escalate,
+      reason,
+    };
   }
   // A 200 with nothing in it is not worth an error box — the visitor can just ask again.
-  if (status === 200) return { answer: EMPTY_ANSWER, citations: [], escalate };
+  if (status === 200) return { answer: EMPTY_ANSWER, citations: [], escalate, reason };
   return { error: errorText(status, phone) };
 }
 
