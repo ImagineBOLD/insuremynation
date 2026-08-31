@@ -13,20 +13,20 @@ import { splitOptions } from './splitOptions';
  * variable is compiled into the public bundle and is not a key at all.
  *
  * The file keeps its old name. It used to call imagine.bo's orchestrator direct from the
- * browser with a widget token, and everything that made that integration what it was is gone
- * with it: **there is no server-issued session, no `reply_id`, no funnel and no terminal
- * state.** The service stores nothing between turns, so `history` is sent from here on every
- * request and a restart their side cannot lose a conversation.
+ * browser with a widget token, and two things it had are gone for good: **there is no
+ * server-issued session and no terminal state.** The service stores nothing between turns, so
+ * `history` is sent from here on every request and a restart their side cannot lose a
+ * conversation.
  *
- * What that removes is lead capture. Their assistant asked for the visitor's contact details
- * itself; ours answers questions and does not run a funnel, so until the contact ask is
- * rebuilt on this side (`ContactForm.jsx` and `contactAsk.js` are parked in the tree for it)
- * the website channel produces no leads at all. A known, accepted gap — not something to work
- * around here.
+ * The funnel is back, but it lives in the RAG rather than here: a turn comes back tagged with
+ * the stage it was answered from (`funnel`, `shortlist`, `contact`, `scope`), the questions and
+ * their choices arrive as text this file does not author, and `reason` is what decides when the
+ * contact form may appear. Nothing about the qualification sequence is encoded in this bundle —
+ * that is deliberate, so it cannot drift from the voice channel's copy of it.
  *
- * `session_id` is sent for that rebuild. It is **not** a token and grants nothing: the RAG
- * uses it to group a conversation so it can report the lead once a phone number exists. It is
- * minted here, persisted with the transcript so a refresh does not split one conversation
+ * `session_id` is what makes a lead possible. It is **not** a token and grants nothing: the RAG
+ * uses it to group a conversation so it can report it to the CRM once a phone number exists. It
+ * is minted here, persisted with the transcript so a refresh does not split one conversation
  * into two CRM leads, and replaced on `reset`.
  */
 
@@ -51,9 +51,9 @@ const CONTACT_AFTER_TURNS = 3;
 const STATE_KEY = 'insurenation-chat-state';
 
 /**
- * Local, not fetched. The old opener was a model turn, so every visitor who opened the panel
- * and closed it again cost a completion. There is nothing to ask the service on open, and the
- * panel must not open empty.
+ * The fallback opener, used when /v1/opener cannot be reached. The real one comes from the
+ * service and depends on the page — see `openPanel`. This one cannot know which product page
+ * the visitor is on, so it asks, which is the right question when we have nothing better.
  */
 const GREETING =
   "Hi! I'm the InsureNation assistant. I can help with new cover, a renewal, or a claim that " +
@@ -101,7 +101,7 @@ const makeId = () => `m${nextId++}`;
  * on purpose, and the greeting opens with the six cover lines the same way, so most turns before
  * the shortlist now render as tappable chips instead of a list printed into a bubble.
  */
-function assistantMessage(text, citations) {
+function assistantMessage(text, citations, plans) {
   const { body, options } = splitOptions(text);
   return {
     id: makeId(),
@@ -109,6 +109,7 @@ function assistantMessage(text, citations) {
     text: body,
     options: options.map((label) => ({ id: null, label, description: null })),
     citations: citations ?? [],
+    plans: plans ?? [],
   };
 }
 
@@ -151,12 +152,15 @@ export function useHeadlessChat() {
       writeJSON(STATE_KEY, {
         sessionId: sessionRef.current,
         contactDone: done,
-        messages: msgs.map(({ id, role, text, options, citations }) => ({
+        // `plans` is stored with the rest: without it a refresh brings the transcript back
+        // with the shortlist's cards missing from the one turn they belong to.
+        messages: msgs.map(({ id, role, text, options, citations, plans }) => ({
           id,
           role,
           text,
           options,
           citations,
+          plans,
         })),
       });
     },
@@ -284,7 +288,7 @@ export function useHeadlessChat() {
           setContactDone(true);
         }
 
-        const answer = assistantMessage(read.answer, read.citations);
+        const answer = assistantMessage(read.answer, read.citations, read.plans);
         setMessages((prev) => {
           const next = prev.map((m) => (m.id === `${userMsg.id}-r` ? { ...answer, id: m.id } : m));
           persist(next, contact?.phone ? true : undefined);

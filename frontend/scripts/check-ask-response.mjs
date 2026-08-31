@@ -128,6 +128,32 @@ assert.equal(readAnswer(200, { answer: 'x' }, PHONE).reason, null);
 assert.equal(readAnswer(200, { answer: 'x', reason: 42 }, PHONE).reason, null);
 assert.equal(readAnswer(200, null, PHONE).reason, null);
 
+// ---------------------------------------------------------------- the shortlist's plans
+
+// They used to be three names inside the sentence, separated by semicolons with the insurer in
+// brackets — "not able to tell which is which". They are data now, and Message renders a card
+// each; dropped here and the shortlist turn arrives as prose with no plans in it at all.
+{
+  const r = readAnswer(200, {
+    answer: 'Here are three that look closest to what you described.',
+    reason: 'shortlist',
+    plans: [
+      { plan_name: 'Digit Two-Wheeler Package Policy', insurer: 'Go Digit General Insurance', plan_type: 'Comprehensive' },
+      { plan_name: 'Two Wheeler Insurance', insurer: 'HDFC ERGO General Insurance', plan_type: 'Comprehensive' },
+    ],
+  }, PHONE);
+  assert.equal(r.plans.length, 2);
+  assert.equal(r.plans[0].plan_name, 'Digit Two-Wheeler Package Policy');
+  assert.equal(r.plans[0].plan_type, 'Comprehensive');
+}
+
+// Always an array, like citations — every non-shortlist turn sends [] and the panel maps over it
+// without guarding.
+assert.deepEqual(readAnswer(200, { answer: 'x' }, PHONE).plans, []);
+assert.deepEqual(readAnswer(200, { answer: 'x', plans: null }, PHONE).plans, []);
+assert.deepEqual(readAnswer(200, { answer: 'x', plans: 'nope' }, PHONE).plans, []);
+assert.deepEqual(readAnswer(200, null, PHONE).plans, []);
+
 // ---------------------------------------------------------------- error wording
 
 // ErrorNotice drops its "you can also call us" footer when the message says to wait instead.

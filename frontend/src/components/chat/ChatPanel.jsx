@@ -173,6 +173,7 @@ export default function ChatPanel({ chat, onClose }) {
             text={m.text}
             streaming={m.streaming}
             citations={m.citations}
+            plans={m.plans}
           />
         ))}
 

@@ -17,7 +17,7 @@ import { unwrapEmphasis } from './unwrapEmphasis';
  *
  * `citations` are the documents the answer was built from, rendered under the bubble.
  */
-export default function Message({ role, text, streaming, citations }) {
+export default function Message({ role, text, streaming, citations, plans }) {
   const isUser = role === 'user';
   // Only the assistant writes markdown at us. The visitor's own words are shown back exactly
   // as they typed them.
@@ -58,11 +58,70 @@ export default function Message({ role, text, streaming, citations }) {
           {streaming && !text && <TypingDots />}
         </div>
 
+        {!isUser && <PlanCards items={plans} />}
         {!isUser && <Citations items={citations} />}
       </div>
     </div>
   );
 }
+
+/**
+ * The shortlist, one card per plan.
+ *
+ * These used to be three names inside the sentence, separated by semicolons with the insurer in
+ * brackets after each: "Stand-Alone Motor Own Damage Policy - Two Wheeler (Royal Sundaram);
+ * IndusInd Two Wheeler Policy - Bundled (IndusInd); ...". Reported, fairly, as not being able to
+ * tell which was which. They arrive as data now and get a card each.
+ *
+ * Not clickable, for the same reason the citations stopped being links: we are a broker, and
+ * every link out of this panel is an exit to a company the visitor can buy from directly.
+ * Choosing between them is what the counsellor call is for.
+ *
+ * The card shape is ContactForm's, which is already the panel's language for "a thing inside the
+ * conversation rather than a bubble in it".
+ */
+function PlanCards({ items }) {
+  if (!items?.length) return null;
+  return (
+    <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {items.map((p, i) => {
+        const name = p?.plan_name;
+        if (!name) return null;
+        // plan_type is empty on a handful of records; the separator would dangle without it.
+        const sub = [p.insurer, p.plan_type].filter(Boolean).join(' · ');
+        return (
+          <div key={`${name}-${i}`} style={planCard}>
+            <div style={planName}>{name}</div>
+            {sub && <div style={planMeta}>{sub}</div>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+const planCard = {
+  padding: '9px 12px',
+  border: '1px solid rgba(0,74,173,0.14)',
+  borderRadius: 14,
+  background: '#f8fafc',
+};
+
+const planName = {
+  fontSize: 13,
+  fontWeight: 500,
+  color: DEEP,
+  lineHeight: 1.35,
+  overflowWrap: 'anywhere',
+};
+
+const planMeta = {
+  fontSize: 11,
+  fontWeight: 300,
+  lineHeight: 1.5,
+  color: 'rgba(0,30,71,0.6)',
+  overflowWrap: 'anywhere',
+};
 
 /**
  * The documents the answer came from.

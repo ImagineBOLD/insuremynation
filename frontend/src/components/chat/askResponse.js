@@ -62,6 +62,9 @@ export function readAnswer(status, data, phone) {
   // It is what decides when the contact form may appear, and the funnel turns are the ones it
   // must never appear during.
   const reason = typeof data?.reason === 'string' ? data.reason : null;
+  // The shortlist's plans, rendered as cards under the bubble. Normalised to an array the way
+  // citations are, so nothing downstream has to guard.
+  const plans = Array.isArray(data?.plans) ? data.plans : [];
   const answer = typeof data?.answer === 'string' ? data.answer.trim() : '';
   if (answer) {
     return {
@@ -69,10 +72,11 @@ export function readAnswer(status, data, phone) {
       citations: Array.isArray(data.citations) ? data.citations : [],
       escalate,
       reason,
+      plans,
     };
   }
   // A 200 with nothing in it is not worth an error box — the visitor can just ask again.
-  if (status === 200) return { answer: EMPTY_ANSWER, citations: [], escalate, reason };
+  if (status === 200) return { answer: EMPTY_ANSWER, citations: [], escalate, reason, plans };
   return { error: errorText(status, phone) };
 }
 
