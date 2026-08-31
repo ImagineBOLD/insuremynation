@@ -90,6 +90,29 @@ assert.deepEqual(readAnswer(200, { answer: 'hi', citations: null }, PHONE).citat
 assert.equal(readAnswer(200, { answer: 42 }, PHONE).answer, EMPTY_ANSWER);
 assert.ok(readAnswer(500, { answer: 42 }, PHONE).error);
 
+// ---------------------------------------------------------------- escalate passes through
+
+// This is what brings up the contact form: an escalation means the assistant has said it cannot
+// help and offered a callback, which is the one moment the form is wanted rather than
+// interruptive. Dropped here — as it was until the contact ask was rebuilt — and the form has no
+// trigger at all, which is the state in which the website produced zero CRM leads.
+assert.equal(readAnswer(200, { answer: 'x', escalate: true }, PHONE).escalate, true);
+assert.equal(readAnswer(200, { answer: 'x', escalate: false }, PHONE).escalate, false);
+assert.equal(readAnswer(502, { answer: 'x', escalate: true }, PHONE).escalate, true);
+
+// Always a boolean, never undefined: the hook keeps it in state and feeds it to a `&&` chain.
+assert.equal(readAnswer(200, { answer: 'x' }, PHONE).escalate, false);
+assert.equal(readAnswer(200, {}, PHONE).escalate, false);
+assert.equal(readAnswer(200, null, PHONE).escalate, false);
+
+// The scope answer — "what do you offer" — is what this branch was fixed for. It must read as a
+// normal answer, not an escalation, or the form appears on the opening question.
+assert.equal(
+  readAnswer(200, { answer: 'We advise on health, life, car…', escalate: false, reason: 'scope' },
+    PHONE).escalate,
+  false
+);
+
 // ---------------------------------------------------------------- error wording
 
 // ErrorNotice drops its "you can also call us" footer when the message says to wait instead.

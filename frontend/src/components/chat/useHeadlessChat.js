@@ -39,6 +39,13 @@ const MAX_MESSAGE_LEN = 2000;
 /** Turns of context sent back. Enough for "and what about my wife?", short enough to bill. */
 const HISTORY_TURNS = 8;
 
+/**
+ * Questions before the contact form is offered unprompted. Three is enough to show the assistant
+ * is useful and few enough that a visitor with real intent has not left. An escalation offers it
+ * sooner, whatever the count.
+ */
+const CONTACT_AFTER_TURNS = 3;
+
 const STATE_KEY = 'insurenation-chat-state';
 
 /**
@@ -113,6 +120,16 @@ export function useHeadlessChat() {
   const busyRef = useRef(false);
   const abortRef = useRef(null);
 
+  /**
+   * The contact ask. `escalated` is the last reply's `escalate` — the assistant saying it cannot
+   * help and offering a callback, which is the one moment the form is obviously wanted rather
+   * than interruptive. `contactDone` closes it for good once the visitor has submitted or
+   * dismissed it, and is persisted: re-asking someone who already said no, every refresh, is how
+   * a chat widget gets closed permanently.
+   */
+  const [escalated, setEscalated] = useState(false);
+  const [contactDone, setContactDone] = useState(() => Boolean(restored.current?.contactDone));
+
   // Abort anything in flight when the component goes away, so a closed tab does not leave a
   // turn running that nobody will read.
   useEffect(() => () => abortRef.current?.abort(), []);
@@ -122,18 +139,22 @@ export function useHeadlessChat() {
    * middle of a conversation, since there is no history endpoint to re-read it from.
    * sessionStorage, not local — people ask this assistant about health conditions.
    */
-  const persist = useCallback((msgs) => {
-    writeJSON(STATE_KEY, {
-      sessionId: sessionRef.current,
-      messages: msgs.map(({ id, role, text, options, citations }) => ({
-        id,
-        role,
-        text,
-        options,
-        citations,
-      })),
-    });
-  }, []);
+  const persist = useCallback(
+    (msgs, done = contactDone) => {
+      writeJSON(STATE_KEY, {
+        sessionId: sessionRef.current,
+        contactDone: done,
+        messages: msgs.map(({ id, role, text, options, citations }) => ({
+          id,
+          role,
+          text,
+          options,
+          citations,
+        })),
+      });
+    },
+    [contactDone]
+  );
 
   /**
    * What ChatWidget calls when the panel opens. No network: it seeds the greeting as a real
@@ -148,11 +169,12 @@ export function useHeadlessChat() {
     });
   }, [persist]);
 
-  // ChatPanel still calls send(text, replyId, extra); the last two are ignored. `reply_id`
-  // belonged to the orchestrator's server-declared options and `extra` to the contact form's
-  // consent flag — both come back in some form when the contact ask does.
+  // `replyId` is vestigial — it belonged to the orchestrator's server-declared options. `contact`
+  // is live again: `{name, phone, email}` from ContactForm. The RAG buffers every turn of a
+  // conversation and pushes the whole thing to the CRM the moment a phone number appears, so
+  // these fields are the entire lead-capture mechanism. Sending them on a normal turn is a no-op.
   const send = useCallback(
-    async (raw) => {
+    async (raw, _replyId = null, contact = null) => {
       const text = String(raw ?? '').trim().slice(0, MAX_MESSAGE_LEN);
       // Not cosmetic: each turn costs an embedding and a completion, and two in flight would
       // interleave in the transcript.
@@ -192,6 +214,11 @@ export function useHeadlessChat() {
             q: text,
             history,
             session_id: sessionRef.current,
+            // Only present on the contact turn. The RAG cannot create a CRM lead without a
+            // phone, so this is the field the whole integration waits on.
+            ...(contact?.name ? { name: contact.name } : {}),
+            ...(contact?.phone ? { phone: contact.phone } : {}),
+            ...(contact?.email ? { email: contact.email } : {}),
             // Attribution, riding in the free-form map the service forwards to the CRM.
             // `landed_from` inside pageContext() is stamped on arrival rather than read live,
             // so a visitor who lands on an ad and opens the chat two pages later still carries
@@ -209,10 +236,16 @@ export function useHeadlessChat() {
           return;
         }
 
+        setEscalated(read.escalate);
+        // The contact turn is the last one that needs the form.
+        if (contact?.phone) {
+          setContactDone(true);
+        }
+
         const answer = assistantMessage(read.answer, read.citations);
         setMessages((prev) => {
           const next = prev.map((m) => (m.id === `${userMsg.id}-r` ? { ...answer, id: m.id } : m));
-          persist(next);
+          persist(next, contact?.phone ? true : undefined);
           return next;
         });
       } catch (err) {
@@ -243,9 +276,11 @@ export function useHeadlessChat() {
     setError(null);
     setPending(false);
     sessionRef.current = newSessionId();
+    setEscalated(false);
+    setContactDone(false);
     const next = [assistantMessage(GREETING)];
     setMessages(next);
-    persist(next);
+    persist(next, false);
   }, [persist]);
 
   // Chips come from the last assistant reply. In practice there are none — see
@@ -256,6 +291,17 @@ export function useHeadlessChat() {
       ? last.options.map(normalizeOption)
       : null;
 
+  /**
+   * Whether to show the contact form. Two triggers, both from our own state rather than from
+   * anything the assistant wrote: it escalated (it has just offered a callback, so the form is
+   * the obvious next step), or the visitor has asked enough questions to be worth calling.
+   *
+   * Not while a turn is in flight, not on top of an error, and never again once done.
+   */
+  const asked = messages.filter((m) => m.role === 'user').length;
+  const askContact =
+    !contactDone && !pending && !error && !last?.streaming && (escalated || asked >= CONTACT_AFTER_TURNS);
+
   return {
     messages,
     pending,
@@ -265,6 +311,12 @@ export function useHeadlessChat() {
     reset,
     clearError: () => setError(null),
     chips,
+    askContact,
+    // The visitor closing the form is an answer. Remembered, so it is not asked again.
+    dismissContact: () => {
+      setContactDone(true);
+      persist(messages, true);
+    },
     // Retired with the orchestrator: a conversation here has no terminal state, because there
     // is no session to delete. Kept as a constant so ChatPanel's FinishedNotice stays wired up
     // for whatever ends a conversation next, and deliberately NOT restored from storage — a

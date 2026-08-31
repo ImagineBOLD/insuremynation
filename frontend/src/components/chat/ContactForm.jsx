@@ -1,18 +1,22 @@
 import { useRef, useState } from 'react';
-import { BLUE } from '../../data/site';
+import { BLUE, DEEP } from '../../data/site';
 import { contactError, formatContact } from './contactAsk';
 import { COUNTRIES, DEFAULT_DIAL, flagOf } from './countries';
 
 /**
- * The reply to the assistant's contact question, as fields instead of a paragraph.
+ * The contact ask, as fields instead of a paragraph.
  *
- * It does **not** capture anything: `onSubmit` sends a normal chat message to imagine.bo, who
- * own the lead and the CRM. This is an input method for their question — which is also why the
- * composer stays visible underneath it. No WhatsApp checkbox here: the workflow asks that
- * permission itself, one turn later, as server-declared buttons whose tap is the consent
- * record — a checkbox on this form was a second ask of the same question.
+ * `onSubmit` gets two things: the prose, which renders as the visitor's own bubble and goes out
+ * as the turn's question, and the fields themselves, which ride the same request as `name`,
+ * `phone` and `email`. The second argument is what actually creates the lead — the RAG service
+ * buffers a whole conversation and pushes it to the CRM the moment a phone number arrives, and
+ * cannot create one without a number. Sending only the prose is what the previous integration
+ * did, and it is why this channel produced no leads at all.
+ *
+ * No WhatsApp checkbox: consent for that is a separate ask, and one on this form was a second
+ * ask of the same question.
  */
-export default function ContactForm({ onSubmit, disabled }) {
+export default function ContactForm({ onSubmit, disabled, onDismiss }) {
   const [name, setName] = useState('');
   const [dial, setDial] = useState(DEFAULT_DIAL);
   const [phone, setPhone] = useState('');
@@ -31,11 +35,24 @@ export default function ContactForm({ onSubmit, disabled }) {
       setError(problem);
       return;
     }
-    onSubmit(formatContact(fields));
+    // The phone goes out in E.164 — the CRM parses it and rejects what it cannot.
+    onSubmit(formatContact(fields), {
+      name: name.trim(),
+      phone: `${dial}${phone.replace(/\D/g, '')}`,
+      email: email.trim(),
+    });
   };
 
   return (
     <form className="imn-chat-contact" onSubmit={submit} style={wrap}>
+      {/* The form is offered by us now, not asked for by the assistant, so it has to say why it
+          appeared. Without a heading it reads as a form that interrupted the conversation. */}
+      <div style={heading}>Want a specialist to call you?</div>
+      <p style={subhead}>
+        Leave your number and a counsellor will call within one working day. No documents, no
+        payment details — just a conversation.
+      </p>
+
       <Row label="Your name">
         <input
           ref={nameRef}
@@ -105,7 +122,17 @@ export default function ContactForm({ onSubmit, disabled }) {
         Send my details
       </button>
 
-      <p style={note}>Or type your answer below instead.</p>
+      {/* Declining is an answer, and the hook remembers it — the form is not offered again in
+          this conversation. Without this the only way out is to ignore a card that stays pinned
+          under every reply. */}
+      <p style={note}>
+        Or keep asking below.{' '}
+        {onDismiss && (
+          <button type="button" onClick={onDismiss} style={dismiss}>
+            No thanks
+          </button>
+        )}
+      </p>
     </form>
   );
 }
@@ -170,4 +197,29 @@ const note = {
   lineHeight: 1.4,
   color: 'rgba(0,30,71,0.55)',
   textAlign: 'center',
+};
+
+const heading = {
+  fontSize: 13,
+  fontWeight: 500,
+  color: DEEP,
+};
+
+const subhead = {
+  margin: 0,
+  fontSize: 11,
+  fontWeight: 300,
+  lineHeight: 1.45,
+  color: 'rgba(0,30,71,0.65)',
+};
+
+// A link, not a second button: declining must not compete with sending.
+const dismiss = {
+  background: 'none',
+  border: 0,
+  padding: 0,
+  font: 'inherit',
+  color: BLUE,
+  textDecoration: 'underline',
+  cursor: 'pointer',
 };

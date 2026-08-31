@@ -185,14 +185,20 @@ What is left, and what each piece is for:
 
 Seven things that are easy to get wrong:
 
-- **The chat captures no leads.** The orchestrator ran a funnel and asked for name, mobile and
-  email itself; ours answers questions and asks for nothing, and every other form on the site is
-  `onClick={() => setSent(true)}` with no fetch. So the website channel currently produces
-  **zero** CRM leads, deliberately, until the contact ask is rebuilt on this side. That is why
-  `contactAsk.js`, `ContactForm.jsx`, `countries.js` and `check-contact-ask.mjs` are still in
-  the tree, and why `session_id` and `data` already ride on every request: the RAG buffers a
-  conversation and reports it the moment a phone number appears. Do not read the empty tree as
-  "leads were never here", and do not treat the flat CRM number as a broken integration.
+- **The contact ask decides on our side, never from the assistant's prose.** It used to key on
+  `isContactAsk(last.text)`, matching the retired orchestrator's own consent sentence — prose the
+  corpus RAG never writes, so the form was unreachable and this channel produced **zero** CRM
+  leads for as long as that gate stood. `useHeadlessChat` owns the decision now and exposes
+  `askContact`: the last reply escalated, or the visitor has asked `CONTACT_AFTER_TURNS` (3)
+  questions. Never while a turn is in flight, and never twice — `contactDone` is persisted,
+  because re-asking someone who declined, on every refresh, is how a widget gets closed for good.
+  The chain that makes a lead exist is worth stating end to end, because any broken link fails
+  silently with a 200: `ContactForm` passes `{name, phone, email}` as its second `onSubmit`
+  argument → `send(text, replyId, contact)` puts them in the POST body → `ask.go` forwards them →
+  the RAG stops buffering (it has been since turn one) and pushes the whole conversation to the
+  CRM. **The phone is the trigger** and the CRM cannot create a lead without one. Send only the
+  prose, as the form did before, and every request still succeeds and no lead is ever created.
+  Every other form on the site is still `onClick={() => setSent(true)}` with no fetch.
 - **An `answer` is an answer whatever the status code** (`askResponse.js`). The Go proxy's own
   502 and 503 bodies carry customer-safe wording plus `escalate: true`, and `escalate` on a 200
   is the assistant declining to guess — a normal reply. Only a response with **no** `answer` is

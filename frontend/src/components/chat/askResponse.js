@@ -45,19 +45,25 @@ export function errorText(status, phone) {
 }
 
 /**
- * `{ answer, citations }` to render, or `{ error }` to show in place of the turn.
+ * `{ answer, citations, escalate }` to render, or `{ error }` to show in place of the turn.
  *
  * Citations are normalised to an array here so nothing downstream has to guard: the
  * service omits the key entirely when it escalated, and a bubble should not have to know
  * that.
+ *
+ * `escalate` is passed through because it is the one signal that the assistant has stopped
+ * being able to help, and it is what brings up the contact form. It arrives on a 200 (the
+ * assistant declining to guess) as well as on the proxy's own 502/503 bodies. Read here rather
+ * than in the hook, so one file knows the response shape.
  */
 export function readAnswer(status, data, phone) {
+  const escalate = Boolean(data?.escalate);
   const answer = typeof data?.answer === 'string' ? data.answer.trim() : '';
   if (answer) {
-    return { answer, citations: Array.isArray(data.citations) ? data.citations : [] };
+    return { answer, citations: Array.isArray(data.citations) ? data.citations : [], escalate };
   }
   // A 200 with nothing in it is not worth an error box — the visitor can just ask again.
-  if (status === 200) return { answer: EMPTY_ANSWER, citations: [] };
+  if (status === 200) return { answer: EMPTY_ANSWER, citations: [], escalate };
   return { error: errorText(status, phone) };
 }
 

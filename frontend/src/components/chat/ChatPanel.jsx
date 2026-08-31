@@ -1,12 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { BLUE, DEEP, EMAIL, PHONE } from '../../data/site';
-import { isContactAsk } from './contactAsk';
 import ContactForm from './ContactForm';
 import Message from './Message';
 import RobotGlyph from './RobotGlyph';
 
 export default function ChatPanel({ chat, onClose }) {
-  const { messages, pending, error, send, clearError, reset, chips, finished } = chat;
+  const { messages, pending, error, send, clearError, reset, chips, finished, askContact,
+    dismissContact } = chat;
   const [draft, setDraft] = useState('');
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
@@ -82,23 +82,19 @@ export default function ChatPanel({ chat, onClose }) {
   }, []);
 
   /**
-   * Whether the assistant is currently asking for contact details, in which case the visitor
-   * gets a form rather than a bare keyboard. Keyed on the last assistant reply, so a refresh
-   * mid-question brings the form back with the restored transcript, and the "Thanks, Rahul!"
-   * that follows dismisses it.
+   * Whether to offer the contact form.
    *
-   * **Dormant.** `isContactAsk` matches the orchestrator's own consent sentence, and the
-   * corpus RAG that replaced it answers questions rather than running a funnel — so it never
-   * writes that sentence and this is never true. Left wired rather than removed: rebuilding
-   * the contact ask on our side is the next change, and only what *decides* to render the
-   * form moves. The form itself, and everything under it, is unchanged.
+   * This used to key on `isContactAsk(last.text)` — matching the retired orchestrator's own
+   * consent sentence. The corpus RAG answers questions rather than running a funnel and never
+   * writes that sentence, so the form was unreachable and the website produced no leads at all.
+   * The decision now comes from `useHeadlessChat` (an escalation, or three questions in), which
+   * is our state rather than something parsed out of the assistant's prose.
    *
    * Declared above the scroll effect because that effect lists it as a dependency, and a
    * dependency array is evaluated during render.
    */
   const last = messages[messages.length - 1];
-  const askingContact =
-    !finished && !chips && last?.role === 'assistant' && !last.streaming && isContactAsk(last.text);
+  const askingContact = !finished && !chips && askContact;
 
   // Pin to the newest content. Layout effect so the jump happens before paint
   // rather than as a visible scroll on every streamed token.
@@ -107,15 +103,14 @@ export default function ChatPanel({ chat, onClose }) {
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, pending, error, askingContact]);
 
-  // `replyId` and `extra` are vestigial: they belonged to the orchestrator's server-declared
-  // options and the contact form's consent flag, and `send` now ignores both. Kept on the
-  // signature because the callers below already pass them and the contact ask will want the
-  // second one back.
-  const submit = (text, replyId = null, extra) => {
+  // `replyId` is vestigial — it belonged to the orchestrator's server-declared options and `send`
+  // ignores it. `contact` is live: `{name, phone, email}` from ContactForm, which the RAG needs
+  // before it can create a CRM lead.
+  const submit = (text, replyId = null, contact) => {
     const value = (text ?? draft).trim();
     if (!value || pending) return;
     setDraft('');
-    send(value, replyId, extra);
+    send(value, replyId, contact);
   };
 
   return (
@@ -203,7 +198,11 @@ export default function ChatPanel({ chat, onClose }) {
             behind, which reads as a form that cannot be scrolled. Here it scrolls with the
             conversation, and the auto-scroll below brings it into view. */}
         {askingContact && !error && (
-          <ContactForm disabled={pending} onSubmit={(text, extra) => submit(text, null, extra)} />
+          <ContactForm
+            disabled={pending}
+            onDismiss={dismissContact}
+            onSubmit={(text, contact) => submit(text, null, contact)}
+          />
         )}
       </div>
 
