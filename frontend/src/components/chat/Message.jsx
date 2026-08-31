@@ -71,8 +71,13 @@ export default function Message({ role, text, streaming, citations }) {
  * why: the knowledge base was one generated file, so the only thing a citation could have
  * named was "insuremynation-website.txt" — an internal build artefact that means nothing to a
  * visitor and reads as a leak. That is no longer what a citation is. Each one now names a real
- * insurer document and links to the insurer's own PDF, which is the strongest thing this
- * assistant can say for itself.
+ * insurer document, which is the strongest thing this assistant can say for itself.
+ *
+ * **Named, never linked.** These used to be anchors to the insurer's own PDF. We are a broker:
+ * every one of those was an exit to a company the visitor could then buy from directly, placed
+ * under our own answer, on our own site. The document name carries the whole benefit — the
+ * answer is traceable to something real — and the link carried only the risk. `source_url` still
+ * arrives in the response and is deliberately not rendered.
  *
  * Inside the bubble's wrapper rather than beside it, so it inherits the row's 88% max width
  * and the left/right flip. A sibling of <Message> would pick up the scroll container's 12px
@@ -91,20 +96,8 @@ function Citations({ items }) {
       {items.slice(0, 4).map((c, i) => {
         const label = citationLabel(c);
         if (!label) return null;
-        // No source_url on a document we hold but the insurer does not publish — show the
-        // name unlinked rather than an anchor that goes nowhere.
-        return c.source_url ? (
-          <a
-            key={c.doc_id ?? i}
-            href={c.source_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={citation}
-          >
-            {label}
-          </a>
-        ) : (
-          <span key={c.doc_id ?? i} style={{ ...citation, color: 'rgba(0,30,71,0.55)' }}>
+        return (
+          <span key={c.doc_id ?? i} style={citation}>
             {label}
           </span>
         );
@@ -113,11 +106,13 @@ function Citations({ items }) {
   );
 }
 
+// Muted, not BLUE. It was the link colour while these were anchors; left blue on plain text it
+// reads as a link that does not respond, which is worse than either.
 const citation = {
   fontSize: 11,
   fontWeight: 300,
   lineHeight: 1.6,
-  color: BLUE,
+  color: 'rgba(0,30,71,0.55)',
   overflowWrap: 'anywhere',
 };
 
