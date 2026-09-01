@@ -25,6 +25,9 @@ export default function Message({ role, text, streaming, citations, plans }) {
 
   return (
     <div
+      // The scroll effect looks for the newest assistant turn by this attribute, so it can put
+      // the top of a long reply at the top of the panel instead of its last line.
+      data-msg={role}
       style={{
         display: 'flex',
         flexDirection: isUser ? 'row-reverse' : 'row',

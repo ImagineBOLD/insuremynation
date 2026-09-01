@@ -6,7 +6,7 @@ import RobotGlyph from './RobotGlyph';
 
 export default function ChatPanel({ chat, onClose }) {
   const { messages, pending, error, send, clearError, reset, chips, finished, askContact,
-    dismissContact } = chat;
+    dismissContact, progress, disclosure } = chat;
   const [draft, setDraft] = useState('');
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
@@ -96,11 +96,25 @@ export default function ChatPanel({ chat, onClose }) {
   const last = messages[messages.length - 1];
   const askingContact = !finished && !chips && askContact;
 
-  // Pin to the newest content. Layout effect so the jump happens before paint
-  // rather than as a visible scroll on every streamed token.
+  /**
+   * Show the newest reply from its FIRST line, not its last.
+   *
+   * Pinning to scrollHeight put the visitor at the bottom of whatever had just arrived, so every
+   * long turn opened mid-sentence: the product-page greeting began at "licensed counsellor gives
+   * the real numbers", and the shortlist pushed all three plan cards out of view above the
+   * contact form - the one turn the whole funnel exists to produce, unread.
+   *
+   * So: scroll the last assistant turn's top to the top of the panel, and fall back to the bottom
+   * when that would scroll past it (a short reply, where the two are the same thing anyway).
+   * Layout effect, so it happens before paint rather than as a visible jump.
+   */
   useLayoutEffect(() => {
     const el = scrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    if (!el) return;
+    const turns = el.querySelectorAll('[data-msg="assistant"]');
+    const newest = turns[turns.length - 1];
+    const top = newest ? newest.offsetTop - 8 : el.scrollHeight;
+    el.scrollTop = Math.min(Math.max(0, top), el.scrollHeight);
   }, [messages, pending, error, askingContact]);
 
   // `replyId` is vestigial — it belonged to the orchestrator's server-declared options and `send`
@@ -146,13 +160,27 @@ export default function ChatPanel({ chat, onClose }) {
         onReset={messages.length > 0 || finished ? reset : null}
       />
 
+      <Disclosure text={disclosure} />
+      <FunnelProgress progress={progress} />
+
       <div
         ref={scrollRef}
         className="imn-chat-scroll"
+        // A log, not a plain box. Replies are announced as they arrive; without this a screen
+        // reader hears only the errors, which are the one thing already marked role="alert".
+        // "polite" rather than "assertive": an answer should wait its turn, not cut across
+        // whatever the visitor is reading or typing.
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+        aria-label="Conversation"
         style={{
           flex: 1,
           minHeight: 0,
           overflowY: 'auto',
+          // offsetTop above is measured against the nearest positioned ancestor; without this
+          // the messages report their offset against the panel and the scroll lands short.
+          position: 'relative',
           padding: '16px 16px 8px',
           display: 'flex',
           flexDirection: 'column',
@@ -191,7 +219,10 @@ export default function ChatPanel({ chat, onClose }) {
             wrapped pills; a long set becomes one bordered group of radio-style rows. The
             circle is decoration — a tap still submits the label as a message, so no second
             confirm. */}
-        {chips && !error && <ChipRow chips={chips} pending={pending} onPick={submit} />}
+        {chips && !error && (
+          <ChipRow chips={chips} pending={pending} onPick={submit} funnel={Boolean(progress)}
+            question={last?.role === 'assistant' ? last.text : ''} />
+        )}
 
         {/* Inside the scroll area because it is tall. Pinned below the transcript it would
             be clipped by the panel's overflow on a short screen — and with nothing
@@ -247,11 +278,89 @@ export default function ChatPanel({ chat, onClose }) {
  */
 const PRODUCT = /health|life|car|bike|travel|marine/i;
 
-function ChipRow({ chips, pending, onPick }) {
+/**
+ * What we are, standing above the conversation.
+ *
+ * Required in the first message and too long to say in one: four lines of legalese in the opening
+ * bubble pushed the question and its choices off the bottom of the panel. Here it is always
+ * visible rather than merely first, and it reads as a disclaimer instead of as the assistant
+ * introducing itself twice.
+ */
+function Disclosure({ text }) {
+  if (!text) return null;
+  return (
+    <div
+      style={{
+        padding: '7px 16px',
+        background: 'rgba(0,74,173,0.04)',
+        borderBottom: '1px solid rgba(0,74,173,0.08)',
+        fontSize: 10,
+        fontWeight: 300,
+        lineHeight: 1.45,
+        color: 'rgba(0,30,71,0.6)',
+        flexShrink: 0,
+      }}
+    >
+      {text}
+    </div>
+  );
+}
+
+/**
+ * How far through qualification the visitor is.
+ *
+ * A funnel with no visible end is one people abandon: four questions feels like forty when you
+ * cannot see the fourth. The count comes from the service because a new car skips two of the six,
+ * so it can go down mid-conversation — "1 of 6" then "2 of 4". That is honest rather than untidy;
+ * we did not know it would be shorter until they answered.
+ *
+ * Sits between the header and the transcript so it does not scroll away, and disappears the
+ * moment the funnel does.
+ */
+function FunnelProgress({ progress }) {
+  if (!progress?.steps) return null;
+  const { step, steps } = progress;
+  const pct = Math.round((Math.max(1, step) - 1) / steps * 100);
+  return (
+    <div
+      style={{ padding: '8px 16px 0', background: '#fff', flexShrink: 0 }}
+      role="progressbar"
+      aria-valuemin={1}
+      aria-valuemax={steps}
+      aria-valuenow={step}
+      aria-label={`Question ${step} of ${steps}`}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <span style={{ fontSize: 10, fontWeight: 400, color: 'rgba(0,30,71,0.55)' }}>
+          A few quick questions
+        </span>
+        <span style={{ fontSize: 10, fontWeight: 500, color: 'rgba(0,30,71,0.55)' }}>
+          {step} of {steps}
+        </span>
+      </div>
+      <div style={{ marginTop: 5, height: 3, borderRadius: 2, background: 'rgba(0,74,173,0.12)' }}>
+        <div
+          style={{
+            width: `${pct}%`,
+            height: '100%',
+            borderRadius: 2,
+            background: BLUE,
+            transition: 'width 240ms ease',
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ChipRow({ chips, pending, onPick, question, funnel }) {
   const shortcut = (label, value) => ({ id: null, label, value, description: null, shortcut: true });
   const serverDeclared = chips.some((c) => c.id != null);
   const all = [...chips];
-  if (!serverDeclared) {
+  // Not during qualification. These are meta-actions, and beside four real answers to a real
+  // question they read as two more answers - "Where are you with the policy right now?" was
+  // offering "Change policy type" and "Request callback" underneath its own four choices.
+  if (!serverDeclared && !funnel) {
     if (chips.filter((c) => PRODUCT.test(c.label)).length < 3)
       all.push(
         shortcut('Change policy type', 'I want a different type of insurance. Which covers do you offer?')
@@ -266,6 +375,10 @@ function ChipRow({ chips, pending, onPick }) {
     return (
       <div
         className="imn-chat-chips"
+        // A named group, so the choices are announced as answers to the question above them
+        // rather than as loose buttons at the end of the transcript.
+        role="group"
+        aria-label={question ? `Answers to: ${question}` : 'Quick replies'}
         style={{ display: 'flex', flexWrap: 'wrap', gap: 8, flexShrink: 0 }}
       >
         {all.map((chip) => (
@@ -302,6 +415,8 @@ function ChipRow({ chips, pending, onPick }) {
   return (
     <div
       className="imn-chat-chips"
+      role="group"
+      aria-label={question ? `Answers to: ${question}` : 'Quick replies'}
       style={{
         display: 'flex',
         flexDirection: 'column',

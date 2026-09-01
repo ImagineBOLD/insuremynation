@@ -65,6 +65,11 @@ export function readAnswer(status, data, phone) {
   // The shortlist's plans, rendered as cards under the bubble. Normalised to an array the way
   // citations are, so nothing downstream has to guard.
   const plans = Array.isArray(data?.plans) ? data.plans : [];
+  // How far through the qualification funnel this turn is. Absent on every other kind of turn,
+  // and computed by the service because a new car skips two of the six questions — a count this
+  // bundle worked out for itself would drift from the funnel actually running.
+  const step = Number.isInteger(data?.step) ? data.step : null;
+  const steps = Number.isInteger(data?.steps) ? data.steps : null;
   const answer = typeof data?.answer === 'string' ? data.answer.trim() : '';
   if (answer) {
     return {
@@ -73,10 +78,14 @@ export function readAnswer(status, data, phone) {
       escalate,
       reason,
       plans,
+      step,
+      steps,
     };
   }
   // A 200 with nothing in it is not worth an error box — the visitor can just ask again.
-  if (status === 200) return { answer: EMPTY_ANSWER, citations: [], escalate, reason, plans };
+  if (status === 200) {
+    return { answer: EMPTY_ANSWER, citations: [], escalate, reason, plans, step, steps };
+  }
   return { error: errorText(status, phone) };
 }
 
@@ -96,6 +105,11 @@ export function citationLabel(c) {
   if (who && what.toLowerCase().startsWith(who.toLowerCase())) {
     what = what.slice(who.length).replace(/^[\s|·—–-]+/, '');
   }
+  // The IRDAI product number, which the insurers put in their own document titles: real ones from
+  // the corpus are "GROUP GLOBAL CARE - UIN: CHIHLGP25040V042425" and "GoActive, Product UIN:
+  // NBHHLIP26046V032526". It is twenty characters of nothing to a visitor, and four citations
+  // carrying one turn the source line into a wall of codes. The document keeps its name.
+  what = what.replace(/[\s,;|·—–-]*\(?(?:Product\s+)?UIN\s*[:#-]?\s*[A-Z0-9/]{8,}\)?\s*$/i, '').trim();
   if (what.length > 64) what = `${what.slice(0, 63).trimEnd()}…`;
   return [who, what].filter(Boolean).join(' · ') || String(c?.doc_id ?? '');
 }

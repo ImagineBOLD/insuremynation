@@ -57,10 +57,23 @@ const STATE_KEY = 'insurenation-chat-state';
  */
 const GREETING =
   "Hi! I'm the InsureNation assistant. I can help with new cover, a renewal, or a claim that " +
-  "is stuck. I'm an automated assistant — anything we discuss is indicative and subject to " +
-  'underwriting; a licensed counsellor gives the real numbers.\n\n' +
-  'Which cover are you looking for?\n' +
+  'is stuck.\n\nWhich cover are you looking for?\n' +
   '- Health\n- Life\n- Car\n- Bike\n- Travel\n- Marine (cargo or hull)';
+
+/**
+ * What we are, shown as a standing notice above the conversation rather than said in a bubble.
+ *
+ * It is required in the first message, and it is also four lines of legalese: inside the opening
+ * bubble it pushed the question and its choices off the bottom of a 560px panel, so a visitor on
+ * a product page opened the chat to a sentence cut in half. A notice that never leaves is a
+ * stronger reading of "mandatory" than one that scrolls away after a turn.
+ *
+ * The service sends the wording (`opener.disclosure`) so it cannot drift from the voice
+ * channel's; this is the fallback for when the opener could not be fetched.
+ */
+const DISCLOSURE =
+  "I'm an automated assistant — anything we discuss is indicative and subject to underwriting; " +
+  'a licensed counsellor gives the real numbers.';
 
 const newSessionId = () =>
   globalThis.crypto?.randomUUID?.() ?? `s${Date.now()}-${Math.round(Math.random() * 1e9)}`;
@@ -136,6 +149,9 @@ export function useHeadlessChat() {
    */
   const [escalated, setEscalated] = useState(false);
   const [reason, setReason] = useState(null);
+  //: {step, steps} while a qualification funnel is running, null otherwise.
+  const [progress, setProgress] = useState(null);
+  const [disclosure, setDisclosure] = useState(DISCLOSURE);
   const [contactDone, setContactDone] = useState(() => Boolean(restored.current?.contactDone));
 
   // Abort anything in flight when the component goes away, so a closed tab does not leave a
@@ -199,6 +215,11 @@ export function useHeadlessChat() {
       } catch {
         /* falls through to the local greeting */
       }
+      // A product-page opener IS the funnel's first question, so the count starts there.
+      setProgress(opened?.reason === 'funnel' && opened?.steps
+        ? { step: opened.step, steps: opened.steps }
+        : null);
+      if (opened?.disclosure) setDisclosure(opened.disclosure);
       const next = opened?.question
         ? [assistantMessage(opened.greeting), assistantMessage(opened.question)]
         : [assistantMessage(GREETING)];
@@ -283,6 +304,7 @@ export function useHeadlessChat() {
 
         setEscalated(read.escalate);
         setReason(read.reason);
+        setProgress(read.reason === 'funnel' && read.steps ? { step: read.step, steps: read.steps } : null);
         // The contact turn is the last one that needs the form.
         if (contact?.phone) {
           setContactDone(true);
@@ -324,6 +346,7 @@ export function useHeadlessChat() {
     sessionRef.current = newSessionId();
     setEscalated(false);
     setReason(null);
+    setProgress(null);
     setContactDone(false);
     // Re-fetch rather than seeding the local greeting: starting over on a product page should
     // land on that product's first question again, exactly as opening the panel does.
@@ -372,6 +395,8 @@ export function useHeadlessChat() {
     reset,
     clearError: () => setError(null),
     chips,
+    progress,
+    disclosure,
     askContact,
     // The visitor closing the form is an answer. Remembered, so it is not asked again.
     dismissContact: () => {
