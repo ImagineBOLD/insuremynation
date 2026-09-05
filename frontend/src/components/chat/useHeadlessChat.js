@@ -1,94 +1,80 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PHONE } from '../../data/site';
-import { readAnswer } from './askResponse';
+import { isContactAsk } from './contactAsk';
 import { pageContext, readJSON, writeJSON } from './pageContext';
 import { splitOptions } from './splitOptions';
 
 /**
- * Chat state and transport for the InsureNation corpus RAG.
+ * Chat state and transport for the Dograh orchestrator — the same assistant the WhatsApp bot
+ * runs, over the same MCP knowledge base, so the two channels cannot answer the same question
+ * differently.
  *
- * One endpoint, same-origin: `POST /v1/ask`, proxied by our own Go service, which holds
- * `RAG_API_KEY` and adds the bearer header. The browser never sees a credential, which is
- * the whole reason the proxy exists — this site is a Vite build, so a key in a `VITE_*`
- * variable is compiled into the public bundle and is not a key at all.
+ * Two endpoints, same-origin: `POST /v1/chat/init` and `POST /v1/chat/message`, relayed by our
+ * Go service. There is no key in this integration — the widget token is public by design. The
+ * relay exists because their side gates on the browser's `Origin` header and lists the
+ * production host alone: called direct from the browser, as this file used to, the chat is a
+ * 403 on every port but one, and could not be exercised locally at all. A server can set Origin;
+ * a browser cannot. See backend/internal/handler/orchestrator.go.
  *
- * The file keeps its old name. It used to call imagine.bo's orchestrator direct from the
- * browser with a widget token, and two things it had are gone for good: **there is no
- * server-issued session and no terminal state.** The service stores nothing between turns, so
- * `history` is sent from here on every request and a restart their side cannot lose a
- * conversation.
+ * Two things come back that the RAG transport never had, and both are load-bearing:
  *
- * The funnel is back, but it lives in the RAG rather than here: a turn comes back tagged with
- * the stage it was answered from (`funnel`, `shortlist`, `contact`, `scope`), the questions and
- * their choices arrive as text this file does not author, and `reason` is what decides when the
- * contact form may appear. Nothing about the qualification sequence is encoded in this bundle —
- * that is deliberate, so it cannot drift from the voice channel's copy of it.
+ * **A server-issued session.** `session_token` is a real credential with a 30-minute sliding
+ * window, minted by `init` and required on every `message`. It is persisted with the transcript,
+ * because there is no history endpoint: the token would survive a refresh in sessionStorage but
+ * the replies would not, leaving an empty panel over a live conversation.
  *
- * `session_id` is what makes a lead possible. It is **not** a token and grants nothing: the RAG
- * uses it to group a conversation so it can report it to the CRM once a phone number exists. It
- * is minted here, persisted with the transcript so a refresh does not split one conversation
- * into two CRM leads, and replaced on `reset`.
+ * **A terminal state.** `finished` means the session is deleted on their side. Sending to it
+ * again silently opens a second conversation, which means a duplicate lead.
+ *
+ * What is NOT here, because the orchestrator's protocol has no field for it: citations, the
+ * structured shortlist, and the funnel's step count. `progress` and `disclosure` are returned as
+ * empty so ChatPanel's notice and progress bar render nothing rather than being torn out — the
+ * assistant states the disclosure itself, in its opening message.
+ *
+ * The funnel, the system prompt, the plan lookups and the lead capture all live in the workflow
+ * on their side. Their assistant asks for the visitor's contact details itself, so this client
+ * must not run an ask of its own: `askContact` only recognises the moment their assistant has
+ * already asked, and offers the form as an easier way to type the answer.
  */
 
-const ENDPOINT = '/v1/ask';
-// The panel's first turn. Same-origin like /v1/ask, and the key stays in the Go service.
-const OPENER_ENDPOINT = '/v1/opener';
+const INIT_ENDPOINT = '/v1/chat/init';
+const MESSAGE_ENDPOINT = '/v1/chat/message';
 
-/** A turn runs retrieval, an embedding call and a completion, and may retry the completion. */
-const REQUEST_TIMEOUT = 45_000;
+/** A turn is a model call on their side, plus a tool call against the MCP server. */
+const REQUEST_TIMEOUT = 60_000;
 const MAX_MESSAGE_LEN = 2000;
-
-/** Turns of context sent back. Enough for "and what about my wife?", short enough to bill. */
-const HISTORY_TURNS = 8;
-
-/**
- * Questions before the contact form is offered unprompted. Three is enough to show the assistant
- * is useful and few enough that a visitor with real intent has not left. An escalation offers it
- * sooner, whatever the count.
- */
-const CONTACT_AFTER_TURNS = 3;
 
 const STATE_KEY = 'insurenation-chat-state';
 
+const GENERIC_ERROR = 'Something went wrong. Please try again.';
+const EMPTY_ANSWER = "I don't have an answer for that. Please try rephrasing.";
+
 /**
- * The fallback opener, used when /v1/opener cannot be reached. The real one comes from the
- * service and depends on the page — see `openPanel`. This one cannot know which product page
- * the visitor is on, so it asks, which is the right question when we have nothing better.
+ * The fallback opener, used when `init` cannot be reached. The real one comes from the workflow
+ * and depends on the page: a visitor on /health-insurance is asked that funnel's first question.
+ * This one cannot know the page, so it asks, which is the right question with nothing better.
  */
 const GREETING =
   "Hi! I'm the InsureNation assistant. I can help with new cover, a renewal, or a claim that " +
   'is stuck.\n\nWhich cover are you looking for?\n' +
   '- Health\n- Life\n- Car\n- Bike\n- Travel\n- Marine (cargo or hull)';
 
-/**
- * What we are, shown as a standing notice above the conversation rather than said in a bubble.
- *
- * It is required in the first message, and it is also four lines of legalese: inside the opening
- * bubble it pushed the question and its choices off the bottom of a 560px panel, so a visitor on
- * a product page opened the chat to a sentence cut in half. A notice that never leaves is a
- * stronger reading of "mandatory" than one that scrolls away after a turn.
- *
- * The service sends the wording (`opener.disclosure`) so it cannot drift from the voice
- * channel's; this is the fallback for when the opener could not be fetched.
- */
-const DISCLOSURE =
-  "I'm an automated assistant — anything we discuss is indicative and subject to underwriting; " +
-  'a licensed counsellor gives the real numbers.';
+/** Status → what the visitor reads. Straight from HEADLESS_CHAT_INTEGRATION.md. */
+function errorText(status) {
+  if (status === 403 || status === 404)
+    return `Chat is unavailable on this page. Please call ${PHONE}.`;
+  if (status >= 500) return 'The assistant is unavailable right now. Please try again in a moment.';
+  return GENERIC_ERROR;
+}
 
-const newSessionId = () =>
-  globalThis.crypto?.randomUUID?.() ?? `s${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-
-/**
- * One POST. Content-Type is the only header: an Authorization header here would be a mistake,
- * not a feature — the key lives in the Go service and the browser has nothing to send.
- */
-async function post(body, signal) {
+/** One POST to our own relay. Content-Type is the only header; there is nothing to authorise. */
+async function post(endpoint, body, signal) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
   const onOuterAbort = () => controller.abort();
   signal?.addEventListener('abort', onOuterAbort);
   try {
-    const res = await fetch(ENDPOINT, {
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -106,23 +92,33 @@ let nextId = 0;
 const makeId = () => `m${nextId++}`;
 
 /**
- * An assistant reply: the bubble text, its citations, and any chips it offered.
+ * An assistant reply, split into the bubble text and any chips it offered.
  *
- * `splitOptions` is a working feature again. It was dead for as long as the assistant only
- * answered questions — a document answer is prose and never carries a flush column-0 `- ` list,
- * so this found nothing. The qualification funnel emits its option lists in exactly that shape
- * on purpose, and the greeting opens with the six cover lines the same way, so most turns before
- * the shortlist now render as tappable chips instead of a list printed into a bubble.
+ * Two sources of chips, one shape, and the difference is not cosmetic. When the server declares
+ * real options — id, title, description — those win and the `- ` heuristic is skipped: they are
+ * the turn's actual choices, and the id echoed back as `reply_id` is what records a consent tap.
+ * Flatten a declared option set into the text heuristic and every chip carries `id: null`, the
+ * tap still looks right, the turn still succeeds, and the WhatsApp consent row is never written.
+ * The heuristic covers every other turn, where there is no id to lose.
  */
-function assistantMessage(text, citations, plans) {
+function assistantMessage(text, serverOptions) {
+  const base = { id: makeId(), role: 'assistant', citations: [], plans: [] };
+  if (serverOptions?.length) {
+    return {
+      ...base,
+      text,
+      options: serverOptions.map((o) => ({
+        id: o.id,
+        label: o.title,
+        description: o.description ?? null,
+      })),
+    };
+  }
   const { body, options } = splitOptions(text);
   return {
-    id: makeId(),
-    role: 'assistant',
+    ...base,
     text: body,
     options: options.map((label) => ({ id: null, label, description: null })),
-    citations: citations ?? [],
-    plans: plans ?? [],
   };
 }
 
@@ -135,126 +131,108 @@ export function useHeadlessChat() {
   const [messages, setMessages] = useState(() => restored.current?.messages ?? []);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(null);
+  const [finished, setFinished] = useState(() => restored.current?.finished ?? false);
+  const [contactDone, setContactDone] = useState(() => Boolean(restored.current?.contactDone));
 
-  const sessionRef = useRef(restored.current?.sessionId ?? newSessionId());
+  const tokenRef = useRef(restored.current?.sessionToken ?? null);
+  const runRef = useRef(restored.current?.runId ?? null);
+  const startedRef = useRef(Boolean(restored.current?.sessionToken));
   const busyRef = useRef(false);
   const abortRef = useRef(null);
 
-  /**
-   * The contact ask. `escalated` is the last reply's `escalate` — the assistant saying it cannot
-   * help and offering a callback, which is the one moment the form is obviously wanted rather
-   * than interruptive. `contactDone` closes it for good once the visitor has submitted or
-   * dismissed it, and is persisted: re-asking someone who already said no, every refresh, is how
-   * a chat widget gets closed permanently.
-   */
-  const [escalated, setEscalated] = useState(false);
-  const [reason, setReason] = useState(null);
-  //: {step, steps} while a qualification funnel is running, null otherwise.
-  const [progress, setProgress] = useState(null);
-  const [disclosure, setDisclosure] = useState(DISCLOSURE);
-  const [contactDone, setContactDone] = useState(() => Boolean(restored.current?.contactDone));
-
-  // Abort anything in flight when the component goes away, so a closed tab does not leave a
-  // turn running that nobody will read.
+  // Abort anything in flight when the component goes away, so a closed tab does not leave a turn
+  // running that nobody will read.
   useEffect(() => () => abortRef.current?.abort(), []);
 
-  /**
-   * The transcript survives a refresh; without this the panel would come back empty in the
-   * middle of a conversation, since there is no history endpoint to re-read it from.
-   * sessionStorage, not local — people ask this assistant about health conditions.
-   */
-  const persist = useCallback(
-    (msgs, done = contactDone) => {
-      writeJSON(STATE_KEY, {
-        sessionId: sessionRef.current,
-        contactDone: done,
-        // `plans` is stored with the rest: without it a refresh brings the transcript back
-        // with the shortlist's cards missing from the one turn they belong to.
-        messages: msgs.map(({ id, role, text, options, citations, plans }) => ({
-          id,
-          role,
-          text,
-          options,
-          citations,
-          plans,
-        })),
-      });
-    },
-    [contactDone]
-  );
+  const persist = useCallback((msgs, done = false, contacted = contactDone) => {
+    writeJSON(STATE_KEY, {
+      sessionToken: tokenRef.current,
+      runId: runRef.current,
+      finished: done,
+      contactDone: contacted,
+      messages: msgs.map(({ id, role, text, options }) => ({ id, role, text, options })),
+    });
+  }, [contactDone]);
 
   /**
-   * What ChatWidget calls when the panel opens. Does nothing if a conversation is restored.
+   * Mints a session and renders the opening turn.
    *
-   * It asks the service for the opener, because the opener depends on the page: a visitor who
-   * opens the chat on /health-insurance is standing on that product's page, and asking them
-   * which cover they want reads as not having paid attention. They get that funnel's first
-   * question instead, and the questions live in one place — the service — rather than being
-   * copied into this bundle where they would drift.
-   *
-   * The old objection to a fetched greeting was that it cost a completion on every panel open,
-   * including the ones nobody read. This one is deterministic upstream: no retrieval, no model.
-   * A typing indicator while it lands reads as normal in a chat; a wrong greeting does not.
-   *
-   * GREETING remains as the fallback, so a failed or unconfigured opener costs the page context
-   * rather than the conversation.
+   * `silent` suppresses the opening message, for the re-init that recovers an expired session
+   * mid-conversation. Rendered there it would land after the message the visitor has just sent,
+   * so the transcript would read: their question, the answer, and then a greeting.
    */
-  const openPanel = useCallback(
-    async (force) => {
-      if (busyRef.current) return;
+  const start = useCallback(
+    async ({ silent, force } = {}) => {
+      if ((startedRef.current && !force) || busyRef.current) return;
+      startedRef.current = true;
       busyRef.current = true;
       setPending(true);
-      let opened = null;
       try {
-        const res = await fetch(OPENER_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ data: pageContext() }),
-        });
-        if (res.ok) opened = await res.json();
+        const { status, data } = await post(INIT_ENDPOINT, { data: pageContext() });
+        if (status !== 200 || !data?.session_token) {
+          startedRef.current = false; // let the next open try again
+          if (!silent) {
+            // Their opener is unreachable, not the whole assistant: seed the local greeting so
+            // the panel opens on a question rather than on an apology.
+            const next = [assistantMessage(GREETING)];
+            setMessages(next);
+            persist(next);
+          }
+          return;
+        }
+        tokenRef.current = data.session_token;
+        runRef.current = data.run_id ?? null;
+        setFinished(false);
+        // The only support handle they accept: every conversation is reportable by run_id.
+        if (data.run_id) console.info(`[chat] run_id ${data.run_id}`);
+
+        // Documented edge case: `opening_message` can be null — render nothing rather than an
+        // empty bubble.
+        if (data.opening_message && !silent) {
+          const next = [assistantMessage(data.opening_message, data.options)];
+          setMessages(next);
+          persist(next);
+        } else {
+          setMessages((prev) => {
+            persist(prev);
+            return prev;
+          });
+        }
       } catch {
-        /* falls through to the local greeting */
+        startedRef.current = false;
+        if (!silent) setError({ message: 'Please check your connection and try again.' });
+      } finally {
+        busyRef.current = false;
+        setPending(false);
       }
-      // A product-page opener IS the funnel's first question, so the count starts there.
-      setProgress(opened?.reason === 'funnel' && opened?.steps
-        ? { step: opened.step, steps: opened.steps }
-        : null);
-      if (opened?.disclosure) setDisclosure(opened.disclosure);
-      const next = opened?.question
-        ? [assistantMessage(opened.greeting), assistantMessage(opened.question)]
-        : [assistantMessage(GREETING)];
-      setMessages((prev) => (!force && prev.length ? prev : (persist(next, force ? false : undefined), next)));
-      setPending(false);
-      busyRef.current = false;
     },
     [persist]
   );
 
+  /** What ChatWidget calls when the panel opens. Does nothing if a conversation is restored. */
   const init = useCallback(() => {
     if (messages.length) return;
-    openPanel(false);
-  }, [messages.length, openPanel]);
+    start();
+  }, [messages.length, start]);
 
-  // `replyId` is vestigial — it belonged to the orchestrator's server-declared options. `contact`
-  // is live again: `{name, phone, email}` from ContactForm. The RAG buffers every turn of a
-  // conversation and pushes the whole thing to the CRM the moment a phone number appears, so
-  // these fields are the entire lead-capture mechanism. Sending them on a normal turn is a no-op.
+  /**
+   * `replyId` is the tapped option's server id, null when the visitor typed. It has to be echoed
+   * back: on the WhatsApp permission turn the id is what writes the consent record, and the
+   * title alone reads correctly and records nothing.
+   *
+   * `contact` is the form's `{name, phone, email}`. The orchestrator's message endpoint has no
+   * fields for them — its assistant asks for contact in prose and reads the reply — so the form
+   * submits the formatted text and this argument only tells us not to offer it again.
+   */
   const send = useCallback(
-    async (raw, _replyId = null, contact = null) => {
+    async (raw, replyId = null, contact = null) => {
       const text = String(raw ?? '').trim().slice(0, MAX_MESSAGE_LEN);
-      // Not cosmetic: each turn costs an embedding and a completion, and two in flight would
-      // interleave in the transcript.
+      // Not cosmetic: each turn runs a model call, and two in flight interleave and confuse the
+      // funnel on their side.
       if (!text || busyRef.current) return;
 
       busyRef.current = true;
       setError(null);
-
-      // Built before the optimistic append, so it is the turns *before* this question — which
-      // is already in `q`. Placeholders and empty bubbles are not context.
-      const history = messages
-        .filter((m) => !m.streaming && m.text)
-        .slice(-HISTORY_TURNS)
-        .map((m) => ({ role: m.role, content: m.text }));
 
       const userMsg = { id: makeId(), role: 'user', text };
       setMessages((prev) => [
@@ -270,50 +248,73 @@ export function useHeadlessChat() {
       const drop = () =>
         setMessages((prev) => {
           const next = prev.filter((m) => m.id !== userMsg.id && m.id !== `${userMsg.id}-r`);
-          persist(next);
+          persist(next, finished);
           return next;
         });
 
+      // Mint a session when there is none, or when the last one ended. Wrapped so the two call
+      // sites below — the opening case and the expiry retry — cannot drift apart.
+      const remint = async () => {
+        tokenRef.current = null;
+        startedRef.current = false;
+        busyRef.current = false;
+        await start({ silent: true, force: true });
+        busyRef.current = true;
+        return Boolean(tokenRef.current);
+      };
+
       try {
-        const { status, data } = await post(
-          {
-            q: text,
-            history,
-            session_id: sessionRef.current,
-            // Only present on the contact turn. The RAG cannot create a CRM lead without a
-            // phone, so this is the field the whole integration waits on.
-            ...(contact?.name ? { name: contact.name } : {}),
-            ...(contact?.phone ? { phone: contact.phone } : {}),
-            ...(contact?.email ? { email: contact.email } : {}),
-            // Attribution, riding in the free-form map the service forwards to the CRM.
-            // `landed_from` inside pageContext() is stamped on arrival rather than read live,
-            // so a visitor who lands on an ad and opens the chat two pages later still carries
-            // the UTMs that paid for them. Nothing consumes it until the contact ask lands, but
-            // it costs nothing to send and cannot be reconstructed afterwards.
-            data: pageContext(),
-          },
+        if (finished || !tokenRef.current) {
+          if (!(await remint())) {
+            drop();
+            setError({ message: errorText(0), retry: text });
+            return;
+          }
+          setFinished(false);
+        }
+
+        let { status, data } = await post(
+          MESSAGE_ENDPOINT,
+          { session_token: tokenRef.current, text, reply_id: replyId || null },
           controller.signal
         );
 
-        const read = readAnswer(status, data, PHONE);
-        if (read.error) {
+        // Idled out on their side: start a fresh conversation and resend once, so the visitor
+        // sees a pause rather than an error.
+        if (status === 200 && data?.session_expired) {
+          if (!(await remint())) {
+            drop();
+            setError({ message: errorText(0), retry: text });
+            return;
+          }
+          ({ status, data } = await post(
+            MESSAGE_ENDPOINT,
+            // reply_id dropped: the fresh session never offered that option.
+            { session_token: tokenRef.current, text, reply_id: null },
+            controller.signal
+          ));
+        }
+
+        if (status !== 200) {
           drop();
-          setError({ message: read.error, retry: text });
+          setError({ message: errorText(status), retry: text });
           return;
         }
 
-        setEscalated(read.escalate);
-        setReason(read.reason);
-        setProgress(read.reason === 'funnel' && read.steps ? { step: read.step, steps: read.steps } : null);
-        // The contact turn is the last one that needs the form.
-        if (contact?.phone) {
-          setContactDone(true);
+        const answer = assistantMessage(data?.assistant_text || EMPTY_ANSWER, data?.options);
+        const done = Boolean(data?.finished);
+        if (done) {
+          // Terminal: the session is deleted their side. Sending to it again would silently open
+          // a second conversation, which means a duplicate lead.
+          tokenRef.current = null;
+          startedRef.current = false;
+          setFinished(true);
         }
-
-        const answer = assistantMessage(read.answer, read.citations, read.plans);
+        const contacted = contact?.phone ? true : contactDone;
+        if (contact?.phone) setContactDone(true);
         setMessages((prev) => {
           const next = prev.map((m) => (m.id === `${userMsg.id}-r` ? { ...answer, id: m.id } : m));
-          persist(next, contact?.phone ? true : undefined);
+          persist(next, done, contacted);
           return next;
         });
       } catch (err) {
@@ -331,60 +332,48 @@ export function useHeadlessChat() {
         abortRef.current = null;
       }
     },
-    [messages, persist]
+    [contactDone, finished, persist, start]
   );
 
-  /**
-   * Discards the conversation and starts another — including a new session id, so the two are
-   * never reported to the CRM as one lead.
-   */
-  const reset = useCallback(() => {
+  /** Discards the conversation and opens a new one — also the way out of `finished`. */
+  const reset = useCallback(async () => {
     abortRef.current?.abort();
     busyRef.current = false;
+    setMessages([]);
     setError(null);
     setPending(false);
-    sessionRef.current = newSessionId();
-    setEscalated(false);
-    setReason(null);
-    setProgress(null);
+    setFinished(false);
     setContactDone(false);
-    // Re-fetch rather than seeding the local greeting: starting over on a product page should
-    // land on that product's first question again, exactly as opening the panel does.
-    setMessages([]);
-    openPanel(true);
-  }, [openPanel]);
+    tokenRef.current = null;
+    runRef.current = null;
+    startedRef.current = false;
+    writeJSON(STATE_KEY, null);
+    // Not silent: a new chat should open with the greeting, as a first open does.
+    await start({ force: true });
+  }, [start]);
 
-  // Chips come from the last assistant reply. In practice there are none — see
-  // assistantMessage — but the path stays live if a reply ever carries a list.
   const last = messages[messages.length - 1];
   const chips =
-    last?.role === 'assistant' && !last.streaming && last.options?.length
+    !finished && last?.role === 'assistant' && !last.streaming && last.options?.length
       ? last.options.map(normalizeOption)
       : null;
 
   /**
    * Whether to show the contact form.
    *
-   * **Never during the funnel.** Contact comes last in this flow — that is the whole point of it:
-   * the shortlist earns the phone number rather than gating it. A turn-count trigger alone put
-   * the form up in the middle of car qualification, between "where are you with the policy" and
-   * "which car is it", which both interrupts the questions and asks for a number before we have
-   * shown the visitor anything. The service tells us the stage; `funnel` is a hard veto.
-   *
-   * What is left is the three moments the form belongs: the shortlist (the assistant has just
-   * named plans and asked for a number), an escalation (it has just offered a callback), or a
-   * visitor who has asked several questions and never entered a funnel at all.
-   *
-   * Not while a turn is in flight, not on top of an error, and never again once done.
+   * Their assistant asks for contact details itself, so this client must never run an ask of its
+   * own — the lead is captured either way and the visitor would be asked twice. What is left is
+   * recognising the turn where they have just asked, and offering fields instead of a paragraph.
+   * `isContactAsk` matches their consent sentence, which is prose only their workflow writes.
    */
-  const asked = messages.filter((m) => m.role === 'user').length;
   const askContact =
     !contactDone &&
+    !finished &&
     !pending &&
     !error &&
     !last?.streaming &&
-    reason !== 'funnel' &&
-    (escalated || reason === 'shortlist' || asked >= CONTACT_AFTER_TURNS);
+    last?.role === 'assistant' &&
+    isContactAsk(last?.text);
 
   return {
     messages,
@@ -395,18 +384,16 @@ export function useHeadlessChat() {
     reset,
     clearError: () => setError(null),
     chips,
-    progress,
-    disclosure,
     askContact,
-    // The visitor closing the form is an answer. Remembered, so it is not asked again.
     dismissContact: () => {
       setContactDone(true);
-      persist(messages, true);
+      persist(messages, finished, true);
     },
-    // Retired with the orchestrator: a conversation here has no terminal state, because there
-    // is no session to delete. Kept as a constant so ChatPanel's FinishedNotice stays wired up
-    // for whatever ends a conversation next, and deliberately NOT restored from storage — a
-    // stale `true` in a returning tab would remove the composer for good.
-    finished: false,
+    finished,
+    // No equivalent in this protocol. Returned so ChatPanel's progress bar and standing notice
+    // stay wired for whatever supplies them next: both render nothing when empty, and the
+    // assistant states the disclosure itself in its opening message.
+    progress: null,
+    disclosure: null,
   };
 }
