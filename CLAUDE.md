@@ -361,10 +361,22 @@ holds lead data**:
 - The `globalNode` "Persona + Ground Truth" is the system prompt — the no-premiums,
   no-waiting-periods, never-re-ask rules the assistant is held to. Read it before assuming the
   bot "should" answer something; most of what it declines, it declines on purpose.
-- **Newest wins.** `InsureNation-workflow-mcp.json` (commit `adc96e0`) is current: it is the
-  only one whose agent nodes carry `tool_uuids: ["<UUID:kb_mcp>"]`, i.e. the knowledge base
-  reached as an MCP tool rather than pasted into the prompt. `correct_workflow.json` and
-  `InsureNation (Website Chatbot) - Leads.json` are earlier snapshots kept for diffing.
+- **The three are three different stages, not three vintages.** "Newest wins" is the wrong mental
+  model — each carries different MCP wiring, and the newest is the *least* runnable:
+  - `correct_workflow.json` — the clean pre-MCP baseline. All 14 `tool_uuids` are `[]`. This is the
+    one the scrapper's `dograh/` tooling actually reads, via `INSUREMYNATION_REPO`
+    (`workflow_source.py`), so it is `patch_workflow.py`'s input and `preflight.py`'s diff baseline.
+    Do not "update" it to a patched copy.
+  - `InsureNation-workflow-mcp.json` (commit `adc96e0`) — `patch_workflow.py` output, 9 nodes armed
+    with the literal placeholder `["<UUID:kb_mcp>"]`. `apply_uuids` was never run on it, so **as it
+    stands it cannot make a tool call**.
+  - `InsureNation (Website Chatbot) - Leads.json` — the only one holding a *resolved* uuid
+    (`5e31f7fa-…`) on 10 nodes. Its armed set is off-contract, though: it includes nodes 13
+    (`S1b · Contact & Consent`) and 23 (`S1c · WhatsApp Permission`), which the scrapper's
+    `preflight.py` requires to carry **no** tools, and omits node 8 (`F5 · Travel`).
+  None of the three carries `mcp_tool_filters`, so every armed node in them reaches all seven
+  catalog functions. The MCP server URL and bearer key are in none of them — those live in the
+  Dograh UI, referenced only by tool uuid.
 - These are **import/export artifacts of their builder**, not something this repo compiles or
   serves. Nothing reads them at build or run time. Change the workflow on their side, export,
   commit the new file — hand-editing the JSON changes nothing live.

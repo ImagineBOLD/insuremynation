@@ -43,7 +43,7 @@
             }
           ],
           "crm_lead_status_enabled": true,
-          "crm_lead_status_url": "https://crm-production-6910.up.railway.app/api/v1/webhooks/lead-status",
+          "crm_lead_status_url": "https://crm-staging-11a5.up.railway.app/api/v1/webhooks/lead-status",
           "crm_lead_status_method": "POST",
           "crm_lead_status_credential_uuid": "5711efb7-92d4-4ae0-9419-782971616b36",
           "crm_funnel_flag": "qualified",
@@ -1403,7 +1403,7 @@
           "name": "Push Lead to CRM",
           "enabled": true,
           "http_method": "POST",
-          "endpoint_url": "https://crm-production-6910.up.railway.app/api/v1/webhooks/disposition",
+          "endpoint_url": "https://crm-staging-11a5.up.railway.app/api/v1/webhooks/disposition",
           "credential_uuid": "5711efb7-92d4-4ae0-9419-782971616b36",
           "custom_headers": [
             {
@@ -1538,7 +1538,7 @@
           "name": "Push WhatsApp Consent",
           "enabled": true,
           "http_method": "POST",
-          "endpoint_url": "https://crm-production-6910.up.railway.app/api/v1/messaging/consents",
+          "endpoint_url": "https://crm-staging-11a5.up.railway.app/api/v1/messaging/consents",
           "credential_uuid": "5711efb7-92d4-4ae0-9419-782971616b36",
           "custom_headers": [
             {
