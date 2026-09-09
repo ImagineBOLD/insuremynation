@@ -70,6 +70,17 @@ export function readAnswer(status, data, phone) {
   // bundle worked out for itself would drift from the funnel actually running.
   const step = Number.isInteger(data?.step) ? data.step : null;
   const steps = Number.isInteger(data?.steps) ? data.steps : null;
+  // Which cover line the service resolved this turn. The caller hands it back on the next
+  // request: `history` is a window, and the visitor's one statement of what they want scrolls
+  // out of it mid-funnel, at which point the service would otherwise decide nobody had chosen a
+  // cover yet and start the qualification again.
+  const line = typeof data?.line === 'string' && data.line ? data.line : null;
+  // The funnel questions already put, by key. Handed back with `line` for the same reason: the
+  // window can slide past the turn a question was asked on, and the service would ask it again.
+  const asked = Array.isArray(data?.asked) ? data.asked.filter((k) => typeof k === 'string') : [];
+  // Where the contact close has got to. Handed back so the permission question is asked once,
+  // not on every turn that happens to carry a phone.
+  const consent = typeof data?.consent === 'string' ? data.consent : null;
   const answer = typeof data?.answer === 'string' ? data.answer.trim() : '';
   if (answer) {
     return {
@@ -80,11 +91,14 @@ export function readAnswer(status, data, phone) {
       plans,
       step,
       steps,
+      line,
+      asked,
+      consent,
     };
   }
   // A 200 with nothing in it is not worth an error box — the visitor can just ask again.
   if (status === 200) {
-    return { answer: EMPTY_ANSWER, citations: [], escalate, reason, plans, step, steps };
+    return { answer: EMPTY_ANSWER, citations: [], escalate, reason, plans, step, steps, line, asked, consent };
   }
   return { error: errorText(status, phone) };
 }

@@ -9,10 +9,15 @@
  * any copy edit and re-ingest, and the assistant cannot drift from what the site
  * actually says.
  *
- * The assistant is instructed (server-side, in backend/internal/services/chat.go)
- * to answer only from this corpus and never to invent policy details, prices or
- * coverage terms — so anything absent here is something it will decline to answer.
- * That is the intended behaviour: this is marketing copy, not a policy wording.
+ * Note that the website chat does NOT read this file. Its own ground truth about
+ * the firm is the prompt in backend/internal/assistant/prompt.go, and its plan
+ * facts come from the plan-catalogue MCP service — so a copy edit here reaches
+ * other consumers of this export, not the panel on this site. Edit prompt.go too.
+ *
+ * Whatever does ingest this is instructed to answer only from it and never to
+ * invent policy details, prices or coverage terms, so anything absent here is
+ * something it will decline to answer. That is intended: this is marketing copy,
+ * not a policy wording.
  */
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -37,10 +42,11 @@ line(
 );
 
 // The assistant's own identity is NOT defined here — it lives in the system prompt
-// (backend/internal/services/chat.go), because retrieval is semantic and a question
-// like "what are you" does not reliably pull whichever chunk describes the bot. What
-// stays here is the third-person scope note: useful if a visitor asks in a roundabout
-// way that does retrieve, and harmless if it never does.
+// (backend/internal/assistant/prompt.go for this site's chat, or the workflow's own
+// global node for the voice and WhatsApp channels), because retrieval is semantic and
+// a question like "what are you" does not reliably pull whichever chunk describes the
+// bot. What stays here is the third-person scope note: useful if a visitor asks in a
+// roundabout way that does retrieve, and harmless if it never does.
 section('Scope of this document');
 line(
   'This document is the copy published on the InsureNation website: what the firm ' +

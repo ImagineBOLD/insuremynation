@@ -32,11 +32,4 @@ func RegisterRoutes(r *gin.Engine) {
 	// nothing upstream: the RAG answers it from the page context, with no retrieval and no
 	// completion.
 	v1.POST("/opener", handler.Opener)
-
-	// The Dograh orchestrator, which the panel talks to instead of the RAG so that the website
-	// and the WhatsApp bot are one assistant over one knowledge base. No key is held here — see
-	// handler/orchestrator.go for why this is a relay at all, which is their Origin allowlist and
-	// not secrecy. Same limiter: a turn there is a model call too.
-	v1.POST("/chat/init", handler.ChatInit)
-	v1.POST("/chat/message", handler.ChatMessage)
 }
