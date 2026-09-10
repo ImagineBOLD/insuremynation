@@ -4,7 +4,7 @@ package middleware
 //
 // CORS() sets Access-Control-Allow-Origin: * for the whole service, which is right for a public
 // static site — the pages and assets are meant to be readable from anywhere. It is wrong in front
-// of /v1/ask, where each call spends money on an embedding and a completion: with a wildcard, any
+// of /v1/chat/*, where each call spends money on a model call upstream: with a wildcard, any
 // page on the internet can put our assistant in their site and bill us for it.
 //
 // Set RAG_ALLOWED_ORIGINS to a comma-separated list. Unset, this middleware does nothing, so a

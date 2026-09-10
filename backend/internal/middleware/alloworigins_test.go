@@ -9,9 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AllowOrigins is the only thing standing between /v1/ask and the open internet, and /v1/ask
-// spends money per call — an embedding plus a completion. A mistake here is not a broken page,
-// it is someone else's site running our assistant on our OpenAI account.
+// AllowOrigins is the only thing standing between /v1/chat/* and the open internet, and a turn
+// there spends money per call — a model call on the assistant's side. A mistake here is not a
+// broken page, it is someone else's site running our assistant on our account.
 //
 // The list is read once at construction, so each case builds its own middleware rather than
 // sharing one; t.Setenv restores the variable afterwards either way.
@@ -93,9 +93,9 @@ func TestAllowOrigins(t *testing.T) {
 
 			r := gin.New()
 			r.Use(AllowOrigins())
-			r.POST("/v1/ask", func(c *gin.Context) { c.String(http.StatusOK, "reached") })
+			r.POST("/v1/chat/message", func(c *gin.Context) { c.String(http.StatusOK, "reached") })
 
-			req := httptest.NewRequest(http.MethodPost, "/v1/ask", nil)
+			req := httptest.NewRequest(http.MethodPost, "/v1/chat/message", nil)
 			if tc.origin != "" {
 				req.Header.Set("Origin", tc.origin)
 			}

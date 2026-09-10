@@ -10,6 +10,15 @@
  * message, so a wrong API key looks like the bot having nothing to say.
  *
  * Same shape as check-split-options.mjs: plain asserts, no framework.
+ *
+ * **This script is dormant.** `/v1/ask` is gone — the chat answers through the orchestrator
+ * relay, whose hook declares its own error strings and branches on the status itself — so
+ * `readAnswer` and `errorText` have no caller under `src/`. `citationLabel` and
+ * `prettyInsurer` are imported by `Message.jsx`, but the hook hardcodes `citations: []`, so
+ * they are never called either. A green run here proves the module still behaves; it proves
+ * nothing about the running chat. Kept because the answer-or-error rule is the piece most
+ * likely to be re-derived wrongly by whoever wires the next transport, and there have now
+ * been three.
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

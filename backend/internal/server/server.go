@@ -62,7 +62,7 @@ func StartServer() {
 // canonicalHost sends page requests that arrive on any other hostname to CANONICAL_HOST.
 //
 // The service answers on both its Railway subdomain and the custom domain, and the two are
-// not interchangeable: /v1/ask is guarded by RAG_ALLOWED_ORIGINS, which lists the custom
+// not interchangeable: /v1/chat/* is guarded by RAG_ALLOWED_ORIGINS, which lists the custom
 // domain alone, so the Railway subdomain serves a page that looks fine and a chat that returns
 // 403 — the worst kind of broken, because nothing on the page says so. A visitor who lands
 // there should end up somewhere the assistant works.

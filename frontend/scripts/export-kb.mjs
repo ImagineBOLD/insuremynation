@@ -9,10 +9,17 @@
  * any copy edit and re-ingest, and the assistant cannot drift from what the site
  * actually says.
  *
- * Note that the website chat does NOT read this file. Its own ground truth about
- * the firm is the prompt in backend/internal/assistant/prompt.go, and its plan
- * facts come from the plan-catalogue MCP service — so a copy edit here reaches
- * other consumers of this export, not the panel on this site. Edit prompt.go too.
+ * Note that the website chat does NOT read this file, and there is no longer
+ * anything in this repo that does. The assistant is the Dograh workflow, whose
+ * ground truth about the firm is its own `globalNode` persona block and whose plan
+ * facts come from the plan-catalogue MCP service — both on imagine.bo's side. So a
+ * copy edit here reaches other consumers of this export, not the panel on this
+ * site, and the matching edit is one nobody in this workspace can make: ask
+ * whoever owns the workflow to update the persona and re-ingest.
+ *
+ * That sentence has now been rewritten three times, each time naming wherever the
+ * assistant's identity currently lives. It has moved on every one of those
+ * occasions, which is the reason to keep saying it out loud rather than assuming.
  *
  * Whatever does ingest this is instructed to answer only from it and never to
  * invent policy details, prices or coverage terms, so anything absent here is
@@ -41,12 +48,12 @@ line(
     'disputes. This document is the copy published on its website.'
 );
 
-// The assistant's own identity is NOT defined here — it lives in the system prompt
-// (backend/internal/assistant/prompt.go for this site's chat, or the workflow's own
-// global node for the voice and WhatsApp channels), because retrieval is semantic and
-// a question like "what are you" does not reliably pull whichever chunk describes the
-// bot. What stays here is the third-person scope note: useful if a visitor asks in a
-// roundabout way that does retrieve, and harmless if it never does.
+// The assistant's own identity is NOT defined here — it lives in the workflow's
+// `globalNode` persona block, which every channel is now held to, the website
+// included. Not here because retrieval is semantic and a question like "what are you"
+// does not reliably pull whichever chunk describes the bot. What stays here is the
+// third-person scope note: useful if a visitor asks in a roundabout way that does
+// retrieve, and harmless if it never does.
 section('Scope of this document');
 line(
   'This document is the copy published on the InsureNation website: what the firm ' +

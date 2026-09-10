@@ -1,12 +1,16 @@
 /**
  * Where the visitor is, and where they came from.
  *
- * This used to be the orchestrator's `context_variables`, which opened the funnel on the
- * right product. There is no funnel any more, and it earns its place for the other half of
- * what it always carried: it goes out as `data` on every `/v1/ask`, which is the map the RAG
- * forwards to the CRM on the lead. Nothing reads it until the contact ask is rebuilt on this
- * side — but attribution cannot be reconstructed after the fact, so it is sent from the
- * first turn rather than switched on later.
+ * This is the orchestrator's `context_variables` again, which is what opens the funnel on the
+ * right product: a visitor standing on /health-insurance is asked that funnel's first question
+ * rather than which cover they want. It travels **once**, on `/v1/chat/init`, because the
+ * session upstream holds it for the rest of the conversation — unlike the catalogue era, when
+ * it rode every turn because the service stored nothing between them.
+ *
+ * That is also why the ad attribution below has to be first-seen rather than current, and why
+ * it is stamped on the very first page view instead of when the panel opens: by the time a
+ * visitor gets round to opening the chat, the UTMs are usually several navigations gone, and
+ * attribution cannot be reconstructed after the fact.
  *
  * Its own module, apart from the hook, so it can be exercised without React: `landing()`
  * is the one piece of state here that is wrong in a way nobody would notice until the

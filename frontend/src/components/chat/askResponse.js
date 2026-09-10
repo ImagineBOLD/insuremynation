@@ -17,6 +17,18 @@
  * `phone` is passed in rather than imported so this stays dependency-free. It has to be the
  * same string as `PHONE` in `src/data/site.js`, because ChatPanel's ErrorNotice checks
  * whether the message already names the number before offering it a second time.
+ *
+ * **Which half of this file runs.** `readAnswer`, `errorText`, `EMPTY_ANSWER` and
+ * `GENERIC_ERROR` have no caller: `/v1/ask` is gone, and the orchestrator hook declares its
+ * own error strings locally and branches on the status directly. `citationLabel` and
+ * `prettyInsurer` are still imported by `Message.jsx` — though `assistantMessage` in the hook
+ * hardcodes `citations: []`, so in the running app they are imported and never called.
+ * `node scripts/check-ask-response.mjs` therefore covers nothing production executes; a green
+ * run there is not evidence about the live chat.
+ *
+ * Kept rather than deleted because the rule above is the thing most likely to be re-derived
+ * wrongly by whoever wires the next transport, and this repo has now had three. Do not delete
+ * the module without checking `Message.jsx` first.
  */
 
 export const GENERIC_ERROR = 'Something went wrong. Please try again.';
