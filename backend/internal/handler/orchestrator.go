@@ -35,6 +35,11 @@ import (
 // the ceiling is ours to choose and this matches what the panel already expected.
 const orchestratorTimeout = 60 * time.Second
 
+// Requests are small — a session token and one message. Anything larger is not a chat turn, and
+// reading it in full before rejecting would be the point of the exercise for whoever sent it.
+// The reply is capped separately, in relayToOrchestrator.
+const maxRequestBytes = 32 << 10
+
 var orchestratorClient = &http.Client{Timeout: orchestratorTimeout}
 
 // Defaults are the live values rather than empty strings, deliberately: none of the three is a
