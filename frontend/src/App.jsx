@@ -6,7 +6,6 @@ import Career from './pages/Career';
 import ClaimSupport from './pages/ClaimSupport';
 import Contact from './pages/Contact';
 import InsurancePage from './pages/InsurancePage';
-import ChatWidget from './components/chat/ChatWidget';
 import { PRODUCTS } from './data/products';
 
 function ScrollToTop() {
@@ -43,9 +42,6 @@ export default function App() {
         ))}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      {/* Outside <Routes> so the assistant persists across navigation rather than
-          unmounting — and losing its conversation — on every page change. */}
-      <ChatWidget />
     </>
   );
 }
