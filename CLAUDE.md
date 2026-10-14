@@ -143,7 +143,7 @@ reshapes it through `[data-r="..."]` media queries. That structure is kept intac
 **The chat is a third-party widget**, one `<script>` tag in `frontend/index.html`:
 
 ```html
-<script src="https://app-dev-293a.up.railway.app/widget/v1/loader.js" data-key="pk_XGq_a7lIW1WIMAqn" async></script>
+<script src="https://app-production-f3da.up.railway.app/widget/v1/loader.js" data-key="pk_1suYFuWwUhGE656s" async></script>
 ```
 
 It lives in `index.html`, outside the React tree, on purpose: the site is an SPA, so route
