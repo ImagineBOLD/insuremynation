@@ -32,7 +32,7 @@ const ROOT_MARGIN = '0px 0px 400px 0px';
  * stagger that reads as a sweep on four pills turns into a visible wait on a
  * ten-cell grid, and no single element is worth holding copy back for.
  */
-const MAX_SWEEP = 0.3; // total time from the first child to the last
+export const MAX_SWEEP = 0.3; // total time from the first child to the last
 const MAX_DELAY = 0.12;
 const MAX_DURATION = 0.45;
 export const VIEWPORT = { once: true, amount: 0, margin: ROOT_MARGIN };

@@ -20,17 +20,31 @@ export const INSURANCE_LINKS = [
   { to: '/marine-insurance', label: 'Marine Insurance' },
 ];
 
+// Frame 45 order. `w` x `h` is each logo's drawn size in px (the source PNGs
+// were exported at 4x); Partners.jsx relies on this order for its rows.
 export const PARTNERS = [
-  'partner-1',
-  'partner-2',
-  'partner-3',
-  'partner-4',
-  'partner-5',
-  'partner-6',
-  'partner-7',
-  'partner-8',
-  'partner-9',
-  'partner-10',
+  { file: 'partner-icici-lombard', name: 'ICICI Lombard', w: 60, h: 60 },
+  { file: 'partner-united-india', name: 'United India Insurance', w: 78, h: 60 },
+  { file: 'partner-digit', name: 'Digit Insurance', w: 97, h: 48 },
+  { file: 'partner-new-india', name: 'The New India Assurance', w: 59, h: 60 },
+  { file: 'partner-hdfc-ergo', name: 'HDFC ERGO', w: 77, h: 60 },
+  { file: 'partner-niva-bupa', name: 'Niva Bupa', w: 104, h: 60 },
+  { file: 'partner-hdfc-life', name: 'HDFC Life', w: 74, h: 48 },
+  { file: 'partner-chola', name: 'Chola MS', w: 148, h: 60 },
+  { file: 'partner-bajaj-allianz', name: 'Bajaj Allianz', w: 188, h: 24 },
+  { file: 'partner-indusind', name: 'IndusInd General Insurance', w: 147, h: 48 },
+  { file: 'partner-sbi-general', name: 'SBI General Insurance', w: 144, h: 48 },
+  { file: 'partner-generali-central', name: 'Generali Central', w: 86, h: 48 },
+  { file: 'partner-care', name: 'Care Health Insurance', w: 154, h: 48 },
+  { file: 'partner-star-health', name: 'Star Health', w: 103, h: 48 },
+  { file: 'partner-bandhan-life', name: 'Bandhan Life', w: 157, h: 48 },
+  { file: 'partner-axis-max-life', name: 'Axis Max Life', w: 144, h: 48 },
+  { file: 'partner-iffco-tokio', name: 'IFFCO Tokio', w: 107, h: 60 },
+  { file: 'partner-icici-prudential', name: 'ICICI Prudential Life', w: 253, h: 48 },
+  { file: 'partner-aditya-birla', name: 'Aditya Birla Capital', w: 211, h: 48 },
+  { file: 'partner-royal-sundaram', name: 'Royal Sundaram', w: 170, h: 52 },
+  { file: 'partner-zurich-kotak', name: 'Zurich Kotak', w: 216, h: 60 },
+  { file: 'partner-manipal-cigna', name: 'ManipalCigna', w: 239, h: 48 },
 ];
 
 export const EXPERT_COPY =

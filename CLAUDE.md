@@ -9,11 +9,15 @@ Two directories, **one** deployable.
 | path | what |
 | --- | --- |
 | `frontend/` | the React site (Vite + React 18 + React Router 6 + Framer Motion) |
-| `backend/` | Go service: serves the built site from an embedded filesystem, plus the `/v1` chat relay |
+| `backend/` | Go service: serves the built site from an embedded filesystem, plus a `/v1` chat relay nothing calls any more |
 
-Plus, at the root, three JSON files that are part of **neither** build: they are exports of
-the imagine.bo/dograh chat workflow — which is now the thing that answers the chat, so they are
-the live specification rather than a record. See *The funnel* below; their filenames mislead.
+Plus, at the root, three JSON files and `HEADLESS_CHAT_INTEGRATION.md` that are part of
+**neither** build: exports of, and an integration guide for, the imagine.bo/Dograh orchestrator
+chat. Since the hosted widget replaced it (see *The chat*) they are a record, not a spec.
+
+**Stale docs:** `README.md`, `HEADLESS_CHAT_INTEGRATION.md` and the comment in
+`frontend/vite.config.js` still describe the old in-house panel / orchestrator chat (including
+`check-*.mjs` scripts that no longer exist). This file is the current source of truth.
 
 This file is the **only** `CLAUDE.md` in the repo, and `README.md`, `.gitignore` and
 `.gitattributes` are likewise single and at the root. Do not re-add per-directory copies.
@@ -26,17 +30,12 @@ the build needs both directories: it builds the site with npm, embeds the output
 Go binary via `//go:embed` (`backend/internal/fs.go`), and ships one container. On Railway
 leave the service's Root Directory empty so the build context is the repo root.
 
-Deployed at **https://insuremynation.imaginebo.app** — the canonical host, and still the only
-one whose chat works. There are now **two** allowlists in series and ours is the outer one:
-`RAG_ALLOWED_ORIGINS` on this service lists this domain alone, and behind it imagine.bo enforces
-its own on the same host. The Railway subdomain
-(`insuremynation-production.up.railway.app`) still answers and serves the same build, but its
-chat gets `403 {"error":"origin not allowed"}` from us before the relay is even reached — a page
-that looks fine above a dead assistant. `CANONICAL_HOST` makes the service redirect page requests
-to the custom domain; see `canonicalHost` in `server.go`. Point ads there. Adding an origin is a
-Railway variable, but it is still a step: an unlisted host gets a 403 the same way. A dev port is
-the exception — Vite proxies `/v1`, so `localhost:5173` is same-origin and needs no entry, and
-their allowlist never sees it because the relay attaches the production origin server-side.
+Deployed at **https://insuremynation.imaginebo.app** — the canonical host; point ads there. The
+Railway subdomain (`insuremynation-production.up.railway.app`) serves the same build, and
+`CANONICAL_HOST` redirects its page requests to the custom domain (`canonicalHost` in
+`server.go`). Whether the hosted widget works on a given host is decided by the widget
+provider's own domain settings, not by anything in this repo. `RAG_ALLOWED_ORIGINS` only guards
+the dormant `/v1` relay.
 
 Everything here is on GitHub, `backend/` and the deploy files included. Upstream authors
 the site itself, so when pulling expect it to own `frontend/src/pages`,
@@ -137,6 +136,13 @@ reshapes it through `[data-r="..."]` media queries. That structure is kept intac
   dimensions of the duotoned files they replaced, so framing matches. They are lossy WebP
   (q90) rather than the lossless q100 the rest of `public/assets/` uses, and `npm run
   images` will not reproduce them.
+- The 22 `partner-<insurer>.webp` logos are not from the handoff either: the client supplied
+  them as PNGs exported at 4× their drawn size, with a Figma frame ("Frame 45") for the
+  section, and they went through `npm run images:optimize -- partner-` (two tiny flat ones
+  came out smaller as lossless WebP and were encoded by hand). Their drawn sizes live in
+  `PARTNERS` in `src/data/site.js`, in frame order; the wall's 9 / 8 / 5 rows come from
+  wrapping that order at 1600px, so reordering or adding a logo moves the row breaks.
+  `npm run images` would bring back the handoff's old `partner-1…10`, which nothing uses.
 
 ## The chat
 
@@ -157,8 +163,9 @@ on the site calls it any more. The root workflow JSONs describe that old orchest
 
 ## The backend
 
-It serves the embedded site, answers a healthcheck, and relays the two `/v1` calls the chat
-makes. That is all it does, and it holds no credential doing it.
+It serves the embedded site, answers a healthcheck, and still exposes the two `/v1` relay calls
+the old in-house panel made (nothing on the site calls them now; the notes below describe them
+for whoever removes or revives them). It holds no credential.
 
 - Only a placeholder `backend/internal/dist/index.html` is committed; the Docker build
   overlays the real Vite output. Do not commit a real built `index.html` there — it names
@@ -229,12 +236,9 @@ makes. That is all it does, and it holds no credential doing it.
   browser console logs once per session.
 
 `frontend/kb-corpus.txt` and `scripts/export-kb.mjs` are kept, but **nothing in this repo reads
-them, and no file in this repo can reach the chat any more.** Plan facts come from the catalogue,
-and everything the assistant may say about the *firm* — the office, the leadership, what each
-product covers, the claims desk, careers — is the workflow's `globalNode` block. So the matching
-edit after a site copy change is one nobody in this workspace can make: re-run the script, then
-ask whoever owns the workflow to update the persona and re-ingest. Do not assume anything picks
-it up alone.
+them, and no file in this repo can reach the chat any more.** What the assistant knows is
+configured on the widget provider's side. After a site copy change, re-run the script and hand
+the corpus to whoever owns the widget's knowledge base; nothing picks it up alone.
 
 ## Known content bug
 

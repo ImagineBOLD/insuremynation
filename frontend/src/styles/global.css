@@ -325,15 +325,19 @@ textarea::placeholder {
   [data-r='srow'] {
     width: 100% !important;
   }
+  /* Partner wall (Frame 45). The wall's width, both gaps and every logo are
+     design px times --u, so it scales as one piece and keeps wrapping 9 / 8 / 5
+     like the frame instead of stranding a logo on a row of its own. Each logo
+     carries its drawn size inline as unitless --w / --h (Partners.jsx). 100px
+     is 40px a side plus room for a classic scrollbar, which 100vw includes. */
   [data-r='pgrid'] {
-    width: 100% !important;
-    max-width: 1200px !important;
-    padding: 0 40px !important;
-    box-sizing: border-box !important;
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    --u: min(1px, (100vw - 100px) / 1600);
+    width: calc(1600 * var(--u)) !important;
+    gap: calc(48 * var(--u)) calc(72 * var(--u)) !important;
   }
   [data-r='plogo'] {
-    max-width: 100% !important;
+    width: calc(var(--w) * var(--u)) !important;
+    height: calc(var(--h) * var(--u)) !important;
   }
   [data-r='fcols'] {
     width: auto !important;
@@ -373,12 +377,12 @@ textarea::placeholder {
     width: 200px !important;
     height: 52px !important;
   }
+  /* Under 1201 the 1600 wall would take the logos below 0.69x: rewrap on an
+     860 design-px wall instead (7 / 4 / 5 / 3 / 3), at most 0.85x. */
   [data-r='pgrid'] {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 34px 24px !important;
-  }
-  [data-r='plogo'] {
-    height: 56px !important;
+    --u: min(0.85px, (100vw - 84px) / 860);
+    width: calc(860 * var(--u)) !important;
+    gap: calc(32 * var(--u)) calc(48 * var(--u)) !important;
   }
   [data-r='ftop'] {
     flex-wrap: wrap !important;
@@ -495,14 +499,9 @@ textarea::placeholder {
     padding: 64px 0 !important;
     gap: 40px !important;
   }
+  /* The 860 wall now fills the column, 20px clear of each edge. */
   [data-r='pgrid'] {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 26px 18px !important;
-    padding: 0 20px !important;
-  }
-  [data-r='plogo'] {
-    height: 44px !important;
-    max-width: 120px !important;
+    --u: calc((100vw - 40px) / 860);
   }
   [data-r='footer'] {
     padding: 60px 20px 0 !important;
@@ -552,6 +551,16 @@ textarea::placeholder {
   [data-r='eyebrow'],
   [data-r='peyebrow'] {
     font-size: 18px !important;
+  }
+}
+
+/* Phones: on the 860 wall the logos would drop under 0.6x, so wrap on a 554
+   design-px wall instead (4 / 4 / 2 / 3 / 3 / 2 / 2 / 2, never one logo alone),
+   at most 0.7x. */
+@media (max-width: 540px) {
+  [data-r='pgrid'] {
+    --u: min(0.7px, (100vw - 40px) / 554);
+    width: calc(554 * var(--u)) !important;
   }
 }
 

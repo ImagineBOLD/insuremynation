@@ -742,7 +742,7 @@ export default function About() {
         </Link>
       </div>
 
-      <Partners padding="104px 0" />
+      <Partners />
       <Footer />
     </div>
   );

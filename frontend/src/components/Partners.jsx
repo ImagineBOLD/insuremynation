@@ -1,12 +1,16 @@
 import { motion } from 'framer-motion';
-import { VIEWPORT, prefersReducedMotion } from './Reveal';
+import { MAX_SWEEP, VIEWPORT, prefersReducedMotion } from './Reveal';
 import { BLUE, PARTNERS } from '../data/site';
 
 /**
- * Partner logo wall. `padding` differs per page in the design:
- * Landing / About use `104px 0`, the product pages use `0 0 104px`.
+ * Partner logo wall, laid out as Frame 45 on every page, except the space
+ * above the eyebrow is doubled to 96px on request (the frame draws 48), so the
+ * section is 503px tall rather than 455. Its three centred rows (9 / 8 / 5)
+ * are not markup: a 1600px wall wraps the list at exactly those points. Below
+ * the canvas, global.css rescales the wall, gaps and logos as one piece via
+ * --u, so the rows keep breaking there.
  */
-export default function Partners({ padding = '104px 0', animate = false }) {
+export default function Partners({ animate = false }) {
   const animated = animate && !prefersReducedMotion();
   const Grid = animated ? motion.div : 'div';
   const Logo = animated ? motion.img : 'img';
@@ -16,7 +20,10 @@ export default function Partners({ padding = '104px 0', animate = false }) {
         initial: 'hidden',
         whileInView: 'visible',
         viewport: VIEWPORT,
-        variants: { hidden: {}, visible: { transition: { staggerChildren: 0.03 } } },
+        variants: {
+          hidden: {},
+          visible: { transition: { staggerChildren: MAX_SWEEP / PARTNERS.length } },
+        },
       }
     : {};
 
@@ -37,8 +44,8 @@ export default function Partners({ padding = '104px 0', animate = false }) {
         width: 1728,
         display: 'flex',
         flexDirection: 'column',
-        gap: 72,
-        padding,
+        gap: 59,
+        padding: '144px 0 48px',
         alignItems: 'center',
         boxSizing: 'border-box',
       }}
@@ -60,24 +67,24 @@ export default function Partners({ padding = '104px 0', animate = false }) {
         data-r="pgrid"
         {...gridProps}
         style={{
-          width: 1200,
-          display: 'grid',
-          gridTemplateColumns: 'repeat(5,1fr)',
-          gap: '48px 60px',
-          justifyItems: 'center',
+          width: 1600,
+          display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
           alignItems: 'center',
+          gap: '48px 72px',
         }}
       >
-        {PARTNERS.map((name) => (
+        {PARTNERS.map(({ file, name, w, h }) => (
           <Logo
-            key={name}
+            key={file}
             data-r="plogo"
             decoding="async"
             loading="lazy"
-            src={`/assets/${name}.webp`}
-            alt=""
+            src={`/assets/${file}.webp`}
+            alt={name}
             {...logoProps}
-            style={{ height: 72, width: 'auto', maxWidth: 200, objectFit: 'contain' }}
+            style={{ '--w': w, '--h': h, width: w, height: h, objectFit: 'contain' }}
           />
         ))}
       </Grid>

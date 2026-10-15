@@ -494,7 +494,7 @@ export default function InsurancePage({ product }) {
       </div>
 
       <TalkToExperts padding="0 0 104px" animate />
-      <Partners padding="0 0 104px" animate />
+      <Partners animate />
       <Footer />
     </div>
   );
