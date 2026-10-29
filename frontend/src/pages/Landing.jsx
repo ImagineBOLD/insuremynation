@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import Nav from '../components/Nav';
 import Footer from '../components/Footer';
 import Partners from '../components/Partners';
+import Testimonials from '../components/Testimonials';
+import { glassButton } from '../components/Primitives';
 import { ArrowLeft, ArrowRight, BracketLeft, BracketRight } from '../components/Icons';
 import { BLUE } from '../data/site';
 
@@ -80,82 +82,6 @@ const BADGES = [
   { title: 'Trusted by Thousands', sub: 'Verified customer reviews' },
 ];
 
-const REVIEWS = [
-  {
-    name: 'Varun Yaul, Delhi',
-    policy: 'Policy: Health Insurance',
-    quote:
-      'Switched my health cover through InsureNation after a frustrating renewal experience elsewhere. The team helped port my existing plan without losing continuity benefits, and explained every clause before I signed. First time insurance felt less like paperwork and more like actual advice.',
-  },
-  {
-    name: 'Vasantharaj Rajendran, Delhi',
-    policy: 'Policy: Health Insurance',
-    quote:
-      'My relationship manager has stayed with me since day one — not just at purchase, but through every renewal and every question about riders since. That kind of continuity is rare with insurance.',
-  },
-  {
-    name: 'Raman Jain, Delhi',
-    policy: 'Policy: Life Insurance',
-    quote:
-      "What stood out wasn't the sale — it was everything after it. InsureNation built trust with us in a category where most people just expect to be sold to.",
-  },
-  {
-    name: 'Rajesh Gawde, Delhi',
-    policy: 'Policy: Health Insurance',
-    quote:
-      "Yashika walked me through every step of buying my policy with patience I didn't expect from an insurance purchase. Clear answers, no pressure, no jargon I couldn't follow.",
-  },
-  {
-    name: 'Vivek G, Delhi',
-    policy: 'Policy: Investment & Wealth',
-    quote:
-      'Nehal helped me build out a proper investment portfolio, not just sell me one product — genuinely diversified across instruments based on what actually made sense for me.',
-  },
-  {
-    name: 'Suchint Deori, Delhi',
-    policy: 'Policy: Claim Support',
-    quote:
-      "I highly recommend Aman for claim assistance. He recently handled my father's Care Health Insurance claim and made the entire process seamless. His expertise and attention to detail ensured everything was filed correctly and efficiently. Truly a professional you can trust.",
-  },
-  {
-    name: 'Deeksha Srivastava, Delhi',
-    policy: 'Policy: Life Insurance',
-    quote:
-      'I am very happy with the service provided by DK Sharma. He very clearly explained the policy — HDFC Life Click 2 Protect Super term insurance — answered all my questions and was reachable every time. The process was smooth throughout with his help.',
-  },
-  {
-    name: 'Prashant Batra, Delhi',
-    policy: 'Policy: Health Insurance',
-    quote:
-      'Great service. Mr Parvesh and Aman personally visited to understand our requirements, suggested a plan accordingly and helped me port the plan for my mother and father. Excellent service.',
-  },
-  {
-    name: 'Vijay Kumar, Delhi',
-    policy: 'Policy: Renewal Support',
-    quote:
-      'Timely reminders and guidance helped me choose the right policy option without making it cost-heavy. Yashika was extremely helpful throughout the policy renewal process. Unlike others who keep calling repeatedly, she connected only when requested. Thank you, Yashika.',
-  },
-  {
-    name: 'Ankur Aggarwal, Delhi',
-    policy: 'Policy: Claim Support',
-    quote:
-      'Deeply grateful to Mr Deepak Sharma for helping us secure the insurance policy. At the time, it seemed like a prudent step — thanks to his guidance and insistence — but little did we know how crucial it would prove to be. His continued involvement ensured the claim was settled efficiently.',
-  },
-];
-
-const glassButton = {
-  borderRadius: 53,
-  cursor: 'pointer',
-  background:
-    'linear-gradient(140deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0.28) 100%)',
-  boxShadow:
-    'inset 0 1px 1px rgba(255,255,255,0.6),inset 0 -1px 2px rgba(255,255,255,0.25),inset 0 0 0 1px rgba(255,255,255,0.3),0 8px 24px rgba(0,0,0,0.18)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  flexShrink: 0,
-};
-
 /**
  * One crossfading photo slot in the hero collage. Each slot shows a different
  * photo from the same set, offset by its index, and every slot's transition is
@@ -201,14 +127,6 @@ export default function Landing() {
   const heroTimer = useRef(null);
   const headlineTimer = useRef(null);
 
-  // Testimonial rail
-  const [idx, setIdx] = useState(0);
-  const [animate, setAnimate] = useState(true);
-  const [step, setStep] = useState(0);
-  const trackRef = useRef(null);
-  const reviewTimer = useRef(null);
-  const snapTimer = useRef(null);
-
   const [hovered, setHovered] = useState(-1);
   // Touch devices have no hover, so the service rows expand from an explicit
   // +/- toggle instead. The toggle is display:none above the 760px breakpoint.
@@ -245,54 +163,7 @@ export default function Landing() {
     };
   }, []);
 
-  // The rail scrolls by one card; measure the real step so it stays correct
-  // once the media queries resize the cards.
-  useEffect(() => {
-    const measure = () => {
-      const el = trackRef.current;
-      if (el && el.children.length > 1) {
-        const next = el.children[1].offsetLeft - el.children[0].offsetLeft;
-        if (next > 0) setStep(next);
-      }
-    };
-    measure();
-    window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
-  }, []);
-
-  const advance = () => {
-    setIdx((current) => {
-      const next = current + 1;
-      if (next >= REVIEWS.length) {
-        // The list is rendered twice; once the copy scrolls in, snap silently
-        // back to the start so the loop is seamless.
-        clearTimeout(snapTimer.current);
-        snapTimer.current = setTimeout(() => {
-          setAnimate(false);
-          setIdx(0);
-          requestAnimationFrame(() => setAnimate(true));
-        }, 620);
-      }
-      return next;
-    });
-    setAnimate(true);
-  };
-
-  const startReviewTimer = () => {
-    clearInterval(reviewTimer.current);
-    reviewTimer.current = setInterval(advance, 4000);
-  };
-
-  useEffect(() => {
-    startReviewTimer();
-    return () => {
-      clearInterval(reviewTimer.current);
-      clearTimeout(snapTimer.current);
-    };
-  }, []);
-
   const headline = HEADLINES[(2 + heroStep) % HEADLINES.length];
-  const testimonials = REVIEWS.concat(REVIEWS);
 
   return (
     <div
@@ -756,174 +627,7 @@ export default function Landing() {
         ))}
       </div>
 
-      {/* TESTIMONIALS */}
-      <div
-        data-r="tsec"
-        style={{
-          position: 'relative',
-          width: 1728,
-          height: 706,
-          overflow: 'hidden',
-          background: '#fff',
-          display: 'flex',
-          flexDirection: 'row',
-          padding: '92px 48px',
-          alignItems: 'flex-end',
-          boxSizing: 'border-box',
-        }}
-      >
-        <div
-          data-r="tleft"
-          style={{
-            width: 816,
-            height: 482,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 22,
-            alignItems: 'flex-start',
-            flexShrink: 0,
-          }}
-        >
-          <span
-            data-r="theading"
-            style={{
-              fontFamily: 'Poppins,sans-serif',
-              fontSize: 64,
-              lineHeight: 1.1,
-              color: BLUE,
-              textTransform: 'uppercase',
-            }}
-          >
-            <strong style={{ display: 'block', fontWeight: 700 }}>Trusted By</strong>
-            <span style={{ display: 'block', fontWeight: 300 }}>Thousands</span>
-          </span>
-          <span
-            data-r="tsub"
-            style={{
-              width: 458,
-              fontFamily: 'Poppins,sans-serif',
-              fontSize: 24,
-              lineHeight: 1.2,
-              color: BLUE,
-            }}
-          >
-            Real experiences from clients who trusted us with what matters most - their health,
-            their family, their future.
-          </span>
-        </div>
-        <div
-          data-r="trail"
-          style={{
-            position: 'relative',
-            width: 864,
-            height: 522,
-            flexShrink: 0,
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            data-r="ttrack"
-            ref={trackRef}
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              width: 'max-content',
-              transform: `translateX(-${idx * (step || 543)}px)`,
-              transition: animate ? 'transform 0.6s cubic-bezier(0.4,0,0.2,1)' : 'none',
-            }}
-          >
-            {testimonials.map((t, i) => (
-              <div
-                key={`${t.name}-${i}`}
-                data-r="tcard"
-                style={{
-                  width: 522,
-                  minHeight: 522,
-                  flexShrink: 0,
-                  marginRight: 21,
-                  overflow: 'visible',
-                  background: BLUE,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 24,
-                  padding: 44,
-                  alignItems: 'flex-start',
-                  boxSizing: 'border-box',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 18,
-                    alignItems: 'flex-start',
-                  }}
-                >
-                  <span
-                    data-r="tname"
-                    style={{
-                      fontFamily: 'Poppins,sans-serif',
-                      fontWeight: 700,
-                      fontSize: 36,
-                      lineHeight: 1.15,
-                      color: '#fff',
-                      textTransform: 'uppercase',
-                      whiteSpace: 'normal',
-                      alignSelf: 'stretch',
-                    }}
-                  >
-                    {t.name}
-                  </span>
-                  <span
-                    data-r="tpolicy"
-                    style={{
-                      fontFamily: 'Poppins,sans-serif',
-                      fontWeight: 300,
-                      fontSize: 27,
-                      lineHeight: 1,
-                      color: '#fff',
-                    }}
-                  >
-                    {t.policy}
-                  </span>
-                </div>
-                <span
-                  data-r="tquote"
-                  style={{
-                    fontFamily: 'Poppins,sans-serif',
-                    fontWeight: 300,
-                    fontSize: 21,
-                    lineHeight: 1.5,
-                    color: '#fff',
-                  }}
-                >
-                  {t.quote}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div
-            data-r="tarrow"
-            role="button"
-            aria-label="Next review"
-            onClick={() => {
-              advance();
-              startReviewTimer();
-            }}
-            style={{
-              ...glassButton,
-              position: 'absolute',
-              left: 487,
-              top: 427,
-              width: 84,
-              height: 84,
-              overflow: 'hidden',
-            }}
-          >
-            <ArrowRight style={{ mixBlendMode: 'exclusion' }} />
-          </div>
-        </div>
-      </div>
+      <Testimonials />
 
       <Footer />
     </div>

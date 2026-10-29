@@ -19,7 +19,7 @@ import {
   staggerItemFade,
   staggerPassthrough,
 } from '../components/Reveal';
-import { BLUE, EMAIL, EMAIL_HREF, PHONE, PHONE_HREF, RED, WHATSAPP } from '../data/site';
+import { ADDRESS, BLUE, EMAIL, EMAIL_HREF, PHONE, PHONE_HREF, RED, WHATSAPP } from '../data/site';
 
 const DETAILS = [
   {
@@ -63,7 +63,7 @@ const REACH_COPY = [
 ];
 
 const MAP_HREF =
-  'https://maps.google.com/?q=Ambadeep+Building+Kasturba+Gandhi+Marg+New+Delhi';
+  'https://maps.google.com/?q=Arunachal+Building+Barakhamba+Road+Connaught+Place+New+Delhi';
 
 export default function Contact() {
   const [topic, setTopic] = useState('New policy');
@@ -366,8 +366,7 @@ export default function Contact() {
           >
             <SplitHeading data-r="qhead" lines={['Visit The', 'Office']} fontSize={52} />
             <Body data-r="qcopy">
-              1015-1016, Ambadeep Building, 14 Kasturba Gandhi Marg, Connaught Place, New Delhi
-              110001. Nearest metro: Barakhamba Road.
+              {ADDRESS}. Nearest metro: Barakhamba Road.
             </Body>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {HOURS.map((h) => (

@@ -189,3 +189,17 @@ export function SubmitRow({ label, note, sent, onClick }) {
     </div>
   );
 }
+
+/** Frosted round button behind the carousel arrows. */
+export const glassButton = {
+  borderRadius: 53,
+  cursor: 'pointer',
+  background:
+    'linear-gradient(140deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0.28) 100%)',
+  boxShadow:
+    'inset 0 1px 1px rgba(255,255,255,0.6),inset 0 -1px 2px rgba(255,255,255,0.25),inset 0 0 0 1px rgba(255,255,255,0.3),0 8px 24px rgba(0,0,0,0.18)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexShrink: 0,
+};

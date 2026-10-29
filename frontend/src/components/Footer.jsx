@@ -17,7 +17,7 @@ const colStyle = (width) => ({
 const headingStyle = {
   fontFamily: 'Poppins,sans-serif',
   fontWeight: 500,
-  fontSize: 21,
+  fontSize: 16,
   lineHeight: 1.3,
   color: '#fff',
   textTransform: 'uppercase',
@@ -26,7 +26,7 @@ const headingStyle = {
 
 const linkStyle = {
   fontFamily: 'Poppins,sans-serif',
-  fontSize: 21,
+  fontSize: 16,
   lineHeight: 1.35,
   color: '#fff',
 };
@@ -86,7 +86,7 @@ export default function Footer() {
             style={{
               alignSelf: 'stretch',
               fontFamily: 'Poppins,sans-serif',
-              fontSize: 21,
+              fontSize: 16,
               lineHeight: 1.5,
               color: '#fff',
             }}
@@ -132,13 +132,18 @@ export default function Footer() {
             <a href="#" onClick={(e) => e.preventDefault()} style={linkStyle}>
               Blog
             </a>
+            <Link to="/privacy-policy" style={linkStyle}>
+              Privacy Policy
+            </Link>
           </div>
 
-          <div data-r="fcol" style={colStyle(442)}>
+          <div data-r="fcol" data-c="contact" style={colStyle(442)}>
             <span style={headingStyle}>Get in touch</span>
             <div style={contactRow}>
               <MailIcon />
-              <span style={linkStyle}>{EMAIL}</span>
+              <span data-r="femail" style={{ ...linkStyle, whiteSpace: 'nowrap' }}>
+                {EMAIL}
+              </span>
             </div>
             <div style={contactRow}>
               <PhoneIcon />
@@ -149,7 +154,7 @@ export default function Footer() {
               <span
                 style={{
                   fontFamily: 'Poppins,sans-serif',
-                  fontSize: 21,
+                  fontSize: 16,
                   color: '#fff',
                   lineHeight: 1.4,
                 }}

@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Nav from '../components/Nav';
 import Footer from '../components/Footer';
 import Partners from '../components/Partners';
+import Testimonials from '../components/Testimonials';
 import { Body, Eyebrow, SplitHeading } from '../components/Primitives';
 import { EASE, staggerItem } from '../components/Reveal';
 import { BLUE } from '../data/site';
@@ -50,27 +50,6 @@ const TEAM = [
     role: 'Business Head - Direct Sales',
     file: 'team-anubhav.webp',
     bio: '6+ years in health insurance. A founder member of the Any Time Health initiative at CyberHub for Niva Bupa - an industry-first digital sales and service machine - and helped build point-of-care touchpoints in hospitals. His expertise is HNI relationship management. Graduate of IP University and a massive cricket buff.',
-  },
-];
-
-const REVIEWS = [
-  {
-    name: 'Varun Yaul',
-    policy: 'Policy: Health Insurance',
-    quote:
-      "The team, especially Swati, helped me find the health plan that actually suited my need - and ported my existing plan when the other insurer's renewal team wouldn't help. I recommend InsureNation for anything insurance related.",
-  },
-  {
-    name: 'Ritu Sharma',
-    policy: 'Policy: Claim Support',
-    quote:
-      'Aman guided us through the entire claim process smoothly and professionally. The company gave quick support and handled the claim efficiently, which made the whole experience stress-free.',
-  },
-  {
-    name: 'Vasantharaj Rajendran',
-    policy: 'Policy: Health Insurance',
-    quote:
-      'I have had good support from my relationship manager Yashika from day one - choosing the right policy and riders, and till date clarifying any query I have. Thank you for the continued support.',
   },
 ];
 
@@ -638,109 +617,7 @@ export default function About() {
         </div>
       </div>
 
-      {/* --------------------------------------------------------------- REVIEWS */}
-      <div
-        data-r="rev"
-        style={{
-          position: 'relative',
-          width: 1728,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 56,
-          padding: '0 96px 104px',
-          alignItems: 'flex-start',
-          boxSizing: 'border-box',
-        }}
-      >
-        <Eyebrow>[ customer reviews ]</Eyebrow>
-        <div
-          data-r="rgrid"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3,minmax(0,1fr))',
-            gap: 25,
-            width: '100%',
-            alignItems: 'stretch',
-          }}
-        >
-          {REVIEWS.map((t) => (
-            <div
-              key={t.name}
-              style={{
-                background: BLUE,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 24,
-                padding: 44,
-                alignItems: 'flex-start',
-                boxSizing: 'border-box',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 14,
-                  alignItems: 'flex-start',
-                }}
-              >
-                <span
-                  data-r="rvname"
-                  style={{
-                    fontFamily: 'Poppins,sans-serif',
-                    fontWeight: 700,
-                    fontSize: 30,
-                    lineHeight: 1.15,
-                    color: '#fff',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {t.name}
-                </span>
-                <span
-                  data-r="rvmeta"
-                  style={{
-                    fontFamily: 'Poppins,sans-serif',
-                    fontWeight: 300,
-                    fontSize: 21,
-                    lineHeight: 1,
-                    color: '#fff',
-                  }}
-                >
-                  {t.policy}
-                </span>
-              </div>
-              <span
-                data-r="rvmeta"
-                style={{
-                  fontFamily: 'Poppins,sans-serif',
-                  fontWeight: 300,
-                  fontSize: 21,
-                  lineHeight: 1.5,
-                  color: '#fff',
-                  textWrap: 'pretty',
-                }}
-              >
-                {t.quote}
-              </span>
-            </div>
-          ))}
-        </div>
-        <Link
-          to="/"
-          style={{
-            fontFamily: 'Poppins,sans-serif',
-            fontWeight: 500,
-            fontSize: 21,
-            lineHeight: 1,
-            color: BLUE,
-            borderBottom: `1px solid ${BLUE}`,
-            paddingBottom: 4,
-          }}
-        >
-          Read more reviews
-        </Link>
-      </div>
+      <Testimonials />
 
       <Partners />
       <Footer />

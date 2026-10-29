@@ -6,7 +6,7 @@
     <link rel="icon" type="image/png" href="/assets/logo.webp" />
 
     <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    <script type="text/plain" data-consent>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
     j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
@@ -14,7 +14,7 @@
     <!-- End Google Tag Manager -->
 
     <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    <script type="text/plain" data-consent>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
     j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
@@ -22,7 +22,7 @@
     <!-- End Google Tag Manager -->
 
     <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    <script type="text/plain" data-consent>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
     j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
@@ -30,8 +30,8 @@
     <!-- End Google Tag Manager -->
 
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16945755026"></script>
-    <script>
+    <script type="text/plain" data-consent data-src="https://www.googletagmanager.com/gtag/js?id=AW-16945755026"></script>
+    <script type="text/plain" data-consent>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
@@ -40,7 +40,7 @@
     </script>
 
     <!-- Meta Pixel Code -->
-    <script>
+    <script type="text/plain" data-consent>
     !function(f,b,e,v,n,t,s)
     {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
     n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -53,6 +53,39 @@
     fbq('track', 'PageView');
     </script>
     <!-- End Meta Pixel Code -->
+
+    <!-- Cookie consent. The analytics and advertising tags above are inert
+         (type="text/plain") until the visitor accepts them in the banner
+         (src/components/CookieBanner.jsx), as the Privacy Policy promises. A
+         returning visitor who accepted gets them straight away. Pulls that re-add
+         these tags as plain <script>s bypass the consent: re-mark them data-consent. -->
+    <script>
+      (function () {
+        var KEY = 'imn-cookie-consent';
+        function read() {
+          try { return localStorage.getItem(KEY); } catch (e) { return null; }
+        }
+        var loaded = false;
+        function load() {
+          if (loaded) return;
+          loaded = true;
+          document.querySelectorAll('script[data-consent]').forEach(function (old) {
+            var s = document.createElement('script');
+            if (old.dataset.src) { s.src = old.dataset.src; s.async = true; }
+            else s.text = old.text;
+            old.parentNode.insertBefore(s, old.nextSibling);
+          });
+        }
+        window.imnConsent = {
+          get: read,
+          set: function (value) {
+            try { localStorage.setItem(KEY, value); } catch (e) {}
+            if (value === 'all') load();
+          },
+        };
+        if (read() === 'all') load();
+      })();
+    </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

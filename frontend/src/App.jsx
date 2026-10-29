@@ -6,6 +6,8 @@ import Career from './pages/Career';
 import ClaimSupport from './pages/ClaimSupport';
 import Contact from './pages/Contact';
 import InsurancePage from './pages/InsurancePage';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import CookieBanner from './components/CookieBanner';
 import { PRODUCTS } from './data/products';
 
 function ScrollToTop() {
@@ -26,6 +28,7 @@ export default function App() {
         <Route path="/career" element={<Career />} />
         <Route path="/claim-support" element={<ClaimSupport />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         {Object.values(PRODUCTS).map((product) => (
           <Route
             key={product.slug}
@@ -42,6 +45,7 @@ export default function App() {
         ))}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <CookieBanner />
     </>
   );
 }

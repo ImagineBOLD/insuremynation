@@ -227,7 +227,6 @@ textarea::placeholder {
   [data-r='intro'],
   [data-r='vm'],
   [data-r='team'],
-  [data-r='rev'],
   [data-r='blocks'] {
     width: 100% !important;
   }
@@ -275,11 +274,11 @@ textarea::placeholder {
     padding-left: calc(96px + var(--bleed)) !important;
     padding-right: calc(96px + var(--bleed)) !important;
   }
-  .p-landing [data-r='tsec'] {
+  :is(.p-landing, .p-about) [data-r='tsec'] {
     padding-left: calc(48px + var(--bleed)) !important;
     padding-right: calc(48px + var(--bleed)) !important;
   }
-  .p-landing [data-r='tleft'] {
+  :is(.p-landing, .p-about) [data-r='tleft'] {
     width: auto !important;
     flex: 1 1 auto !important;
   }
@@ -303,8 +302,7 @@ textarea::placeholder {
   .p-about [data-r='intro'],
   .p-about [data-r='badges'],
   .p-about [data-r='vm'],
-  .p-about [data-r='team'],
-  .p-about [data-r='rev'] {
+  .p-about [data-r='team'] {
     padding-left: calc(96px + var(--bleed)) !important;
     padding-right: calc(96px + var(--bleed)) !important;
   }
@@ -348,17 +346,24 @@ textarea::placeholder {
     width: auto !important;
     flex: 1 1 0 !important;
     min-width: 0 !important;
+    padding: 32px !important;
   }
   /* Below the canvas the three columns are flex-sized rather than the drawn
-     402/442px, so the contact strings no longer fit on one line at the design's
-     21px — the email was running out through the side of its column at every
-     width from 1201 to 1600. Step the size down and let a long token break
-     inside the column rather than escape it. */
+     402/442px. The contact column takes the larger share so the email stays on
+     one line at 16px down to 1201 (from 1200 the columns wrap to full width);
+     any other long token breaks inside its column rather than escaping it. */
+  [data-r='fcol'][data-c='contact'] {
+    flex: 1.5 1 0 !important;
+  }
   [data-r='fcol'] a,
   [data-r='fcol'] span {
-    font-size: 18px !important;
+    font-size: 16px !important;
     line-height: 1.4 !important;
     overflow-wrap: anywhere !important;
+  }
+  [data-r='fcol'] [data-r='femail'] {
+    overflow-wrap: normal !important;
+    white-space: nowrap !important;
   }
 }
 
@@ -517,7 +522,7 @@ textarea::placeholder {
     width: 210px !important;
   }
   [data-r='ftag'] {
-    font-size: 14px !important;
+    font-size: 16px !important;
   }
   [data-r='fcols'] {
     width: 100% !important;
@@ -529,10 +534,14 @@ textarea::placeholder {
   }
   [data-r='fcol'] a,
   [data-r='fcol'] span {
-    /* Part of the mobile type scale; the footer is one shared component, so
-       it steps down on every route rather than only the sub pages. */
-    font-size: 14px !important;
+    /* The footer holds 16px at every width, phones included. */
+    font-size: 16px !important;
     min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+  /* On the narrowest phones the email may break rather than overflow. */
+  [data-r='fcol'] [data-r='femail'] {
+    white-space: normal !important;
     overflow-wrap: anywhere !important;
   }
   [data-r='fmark'] {
@@ -571,7 +580,7 @@ textarea::placeholder {
   .p-landing [data-r='hero'],
   .p-landing [data-r='services'],
   .p-landing [data-r='badges'],
-  .p-landing [data-r='tsec'] {
+  :is(.p-landing, .p-about) [data-r='tsec'] {
     width: 100% !important;
   }
   .p-landing [data-r='gal'] {
@@ -589,14 +598,14 @@ textarea::placeholder {
     right: 40px !important;
     width: auto !important;
   }
-  .p-landing [data-r='tleft'] {
+  :is(.p-landing, .p-about) [data-r='tleft'] {
     width: auto !important;
     flex: 1 1 auto !important;
   }
-  .p-landing [data-r='trail'] {
+  :is(.p-landing, .p-about) [data-r='trail'] {
     width: 52% !important;
   }
-  .p-landing [data-r='tarrow'] {
+  :is(.p-landing, .p-about) [data-r='tarrow'] {
     left: auto !important;
     right: 24px !important;
   }
@@ -664,22 +673,22 @@ textarea::placeholder {
     height: 120px !important;
     left: 72px !important;
   }
-  .p-landing [data-r='trail'] {
+  :is(.p-landing, .p-about) [data-r='trail'] {
     width: 48% !important;
     height: auto !important;
     align-self: flex-end !important;
   }
-  .p-landing [data-r='ttrack'] {
+  :is(.p-landing, .p-about) [data-r='ttrack'] {
     width: 100% !important;
   }
-  .p-landing [data-r='tcard'] {
+  :is(.p-landing, .p-about) [data-r='tcard'] {
     flex: 0 0 100% !important;
     width: auto !important;
     min-height: 0 !important;
     margin-right: 0 !important;
     padding: 30px !important;
   }
-  .p-landing [data-r='tarrow'] {
+  :is(.p-landing, .p-about) [data-r='tarrow'] {
     position: relative !important;
     left: 0 !important;
     right: auto !important;
@@ -688,14 +697,14 @@ textarea::placeholder {
     height: 60px !important;
     margin: 16px 0 0 auto !important;
   }
-  .p-landing [data-r='tname'] {
+  :is(.p-landing, .p-about) [data-r='tname'] {
     font-size: 26px !important;
     white-space: normal !important;
   }
-  .p-landing [data-r='tpolicy'] {
+  :is(.p-landing, .p-about) [data-r='tpolicy'] {
     font-size: 20px !important;
   }
-  .p-landing [data-r='tquote'] {
+  :is(.p-landing, .p-about) [data-r='tquote'] {
     font-size: 17px !important;
   }
   .p-landing [data-r='badges'] {
@@ -714,10 +723,10 @@ textarea::placeholder {
   .p-landing [data-r='bsub'] {
     font-size: 15px !important;
   }
-  .p-landing [data-r='theading'] {
+  :is(.p-landing, .p-about) [data-r='theading'] {
     font-size: 46px !important;
   }
-  .p-landing [data-r='tsub'] {
+  :is(.p-landing, .p-about) [data-r='tsub'] {
     width: auto !important;
     max-width: 420px !important;
     font-size: 20px !important;
@@ -868,50 +877,50 @@ textarea::placeholder {
   .p-landing [data-r='bsub'] {
     font-size: 16px !important;
   }
-  .p-landing [data-r='tsec'] {
+  :is(.p-landing, .p-about) [data-r='tsec'] {
     height: auto !important;
     flex-direction: column !important;
     align-items: stretch !important;
     padding: 60px 20px 68px !important;
     gap: 30px !important;
   }
-  .p-landing [data-r='tleft'] {
+  :is(.p-landing, .p-about) [data-r='tleft'] {
     width: 100% !important;
     height: auto !important;
   }
-  .p-landing [data-r='theading'] {
+  :is(.p-landing, .p-about) [data-r='theading'] {
     font-size: 27px !important;
   }
-  .p-landing [data-r='tsub'] {
+  :is(.p-landing, .p-about) [data-r='tsub'] {
     width: auto !important;
     max-width: none !important;
     font-size: 14px !important;
   }
-  .p-landing [data-r='trail'] {
+  :is(.p-landing, .p-about) [data-r='trail'] {
     width: 100% !important;
     height: auto !important;
   }
-  .p-landing [data-r='tcard'] {
+  :is(.p-landing, .p-about) [data-r='tcard'] {
     width: calc(100vw - 40px) !important;
     min-height: 0 !important;
     /* Room at the foot for the pager, which sits inside the card here. */
     padding: 24px 24px 88px !important;
     margin-right: 14px !important;
   }
-  .p-landing [data-r='tname'] {
+  :is(.p-landing, .p-about) [data-r='tname'] {
     font-size: 16px !important;
     white-space: normal !important;
   }
-  .p-landing [data-r='tpolicy'] {
+  :is(.p-landing, .p-about) [data-r='tpolicy'] {
     font-size: 14px !important;
   }
-  .p-landing [data-r='tquote'] {
+  :is(.p-landing, .p-about) [data-r='tquote'] {
     font-size: 16px !important;
   }
   /* Pager sits in the card's bottom-right corner, as it does on desktop,
      rather than floating on the white below it. `trail` is the positioning
      context and matches the card's width here, so its corner is the card's. */
-  .p-landing [data-r='tarrow'] {
+  :is(.p-landing, .p-about) [data-r='tarrow'] {
     position: absolute !important;
     left: auto !important;
     right: 20px !important;
@@ -1017,7 +1026,7 @@ textarea::placeholder {
   .p-sub [data-r='perks'],
   .p-sub [data-r='cover'],
   .p-sub [data-r='quote'],
-  .p-sub [data-r='expert'] {
+  :is(.p-sub, .p-legal) [data-r='expert'] {
     width: 100% !important;
   }
   .p-sub [data-r='htitle'],
@@ -1058,7 +1067,7 @@ textarea::placeholder {
     padding-left: 32px !important;
     padding-right: 32px !important;
   }
-  .p-sub [data-r='expert'] > div {
+  :is(.p-sub, .p-legal) [data-r='expert'] > div {
     padding-left: 32px !important;
     padding-right: 32px !important;
   }
@@ -1145,12 +1154,12 @@ textarea::placeholder {
   .p-sub [data-r='qfields'] {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
-  .p-sub [data-r='erow'] {
+  :is(.p-sub, .p-legal) [data-r='erow'] {
     flex-direction: column !important;
     gap: 28px !important;
     align-items: flex-start !important;
   }
-  .p-sub [data-r='ehead'] {
+  :is(.p-sub, .p-legal) [data-r='ehead'] {
     font-size: 40px !important;
   }
   /* Career-only */
@@ -1196,7 +1205,7 @@ textarea::placeholder {
     padding-left: 20px !important;
     padding-right: 20px !important;
   }
-  .p-sub [data-r='expert'] > div {
+  :is(.p-sub, .p-legal) [data-r='expert'] > div {
     padding-left: 20px !important;
     padding-right: 20px !important;
   }
@@ -1247,10 +1256,10 @@ textarea::placeholder {
   .p-sub [data-r='qfields'] {
     grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
   }
-  .p-sub [data-r='ehead'] {
+  :is(.p-sub, .p-legal) [data-r='ehead'] {
     font-size: 21px !important;
   }
-  .p-sub [data-r='ecopy'] {
+  :is(.p-sub, .p-legal) [data-r='ecopy'] {
     font-size: 14px !important;
   }
   .p-sub [data-r='ephone'] {
@@ -1271,7 +1280,7 @@ textarea::placeholder {
   }
   .p-sub [data-r='cgrid'] span,
   .p-sub [data-r='submitlabel'],
-  .p-sub [data-r='ectas'] a,
+  :is(.p-sub, .p-legal) [data-r='ectas'] a,
   .p-sub [data-r='rcmeta'],
   .p-sub [data-r='chip'],
   .p-sub [data-r='qmeta'] {
@@ -1304,8 +1313,7 @@ textarea::placeholder {
   .p-about [data-r='badges'],
   .p-about [data-r='intro'],
   .p-about [data-r='vm'],
-  .p-about [data-r='team'],
-  .p-about [data-r='rev'] {
+  .p-about [data-r='team'] {
     width: 100% !important;
   }
   .p-about [data-r='atitle'],
@@ -1336,8 +1344,7 @@ textarea::placeholder {
   }
   .p-about [data-r='intro'],
   .p-about [data-r='vm'],
-  .p-about [data-r='team'],
-  .p-about [data-r='rev'] {
+  .p-about [data-r='team'] {
     padding-left: 32px !important;
     padding-right: 32px !important;
   }
@@ -1404,9 +1411,6 @@ textarea::placeholder {
   .p-about [data-r='tgrid'] {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
-  .p-about [data-r='rgrid'] {
-    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-  }
 }
 
 @media (max-width: 760px) {
@@ -1436,7 +1440,6 @@ textarea::placeholder {
   }
   .p-about [data-r='intro'],
   .p-about [data-r='team'],
-  .p-about [data-r='rev'],
   .p-about [data-r='vm'] {
     padding-left: 20px !important;
     padding-right: 20px !important;
@@ -1514,9 +1517,6 @@ textarea::placeholder {
   }
 
   /* --- mobile type scale (see the shared block) -------------------------- */
-  .p-about [data-r='rvname'] {
-    font-size: 21px !important;
-  }
   /* 26px is not one of the sizes in the scale, but this is the same badge
      component the landing page renders at 18px — matched so the two pages
      agree. `vmhead`, also 26px, has no counterpart and is left alone. */
@@ -1524,9 +1524,7 @@ textarea::placeholder {
     font-size: 18px !important;
   }
   .p-about [data-r='icopy'] span,
-  .p-about [data-r='snum'],
-  .p-about [data-r='rvmeta'],
-  .p-about [data-r='rev'] a {
+  .p-about [data-r='snum'] {
     font-size: 16px !important;
   }
   .p-about [data-r='tmmeta'],
@@ -1565,24 +1563,23 @@ textarea::placeholder {
   .p-about [data-r='partners'],
   .p-landing [data-r='services'],
   .p-landing [data-r='badges'],
-  .p-landing [data-r='tsec'],
+  :is(.p-landing, .p-about) [data-r='tsec'],
   .p-sub [data-r='why'],
   .p-sub [data-r='perks'],
   .p-sub [data-r='cover'],
   .p-sub [data-r='quote'],
-  .p-sub [data-r='expert'],
+  :is(.p-sub, .p-legal) [data-r='expert'],
   .p-about [data-r='intro'],
   .p-about [data-r='badges'],
   .p-about [data-r='vm'],
   .p-about [data-r='blocks'],
-  .p-about [data-r='team'],
-  .p-about [data-r='rev'] {
+  .p-about [data-r='team'] {
     padding-top: 32px !important;
     padding-bottom: 32px !important;
   }
 
   /* The expert panel carries its own inset, drawn at 72px top and bottom. */
-  .p-sub [data-r='expert'] > div {
+  :is(.p-sub, .p-legal) [data-r='expert'] > div {
     padding-top: 32px !important;
     padding-bottom: 32px !important;
   }
@@ -1594,8 +1591,7 @@ textarea::placeholder {
   .p-about [data-r='intro'],
   .p-about [data-r='vm'],
   .p-about [data-r='blocks'],
-  .p-about [data-r='team'],
-  .p-about [data-r='rev'] {
+  .p-about [data-r='team'] {
     gap: 28px !important;
   }
 }
@@ -1684,5 +1680,94 @@ textarea::placeholder {
 
   .p-sub [data-r='psub'] {
     font-size: clamp(14px, 1.15vw, 19px) !important;
+  }
+}
+
+/* ==========================================================================
+   Privacy Policy (.p-legal). Not part of the design handoff: a gradient hero
+   band in the footer's colours, then a text column on the 96px gutter. All
+   names are `lg*`, so nothing here collides with another page's `data-r`.
+   ========================================================================== */
+@media (min-width: 1729px) {
+  .p-legal [data-r='lghero'],
+  .p-legal [data-r='lgbody'] {
+    width: 100% !important;
+    padding-left: calc(96px + var(--bleed)) !important;
+    padding-right: calc(96px + var(--bleed)) !important;
+  }
+}
+
+@media (max-width: 1727px) {
+  .p-legal [data-r='lghero'],
+  .p-legal [data-r='lgbody'] {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .p-legal [data-r='lghero'] {
+    padding: 200px 32px 72px !important;
+  }
+  .p-legal [data-r='lgbody'] {
+    padding: 80px 32px !important;
+    gap: 56px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  /* The header is a fixed bar here and the root already pads for it. */
+  .p-legal [data-r='lghero'] {
+    padding: 44px 20px !important;
+  }
+  .p-legal [data-r='lgtitle'] {
+    font-size: 27px !important;
+  }
+  .p-legal [data-r='lgdate'] {
+    font-size: 14px !important;
+  }
+  .p-legal [data-r='lgbody'] {
+    padding: 48px 20px !important;
+    gap: 40px !important;
+  }
+  /* Mobile type scale: 34 -> 27, 24 -> 18, 21 -> 16, 18 -> 14. */
+  .p-legal [data-r='lghead'] {
+    font-size: 21px !important;
+  }
+  .p-legal [data-r='lgsub'] {
+    font-size: 18px !important;
+  }
+  .p-legal [data-r='lgtext'] {
+    font-size: 16px !important;
+  }
+  .p-legal [data-r='lgtable'] th,
+  .p-legal [data-r='lgtable'] td {
+    font-size: 14px !important;
+    padding: 12px 14px !important;
+  }
+  .p-legal [data-r='lgtable'] table {
+    min-width: 520px !important;
+  }
+}
+
+/* Cookie banner (CookieBanner.jsx). On phones it spans the width and sits
+   above the chat launcher in the bottom-right corner rather than over it. */
+@media (max-width: 760px) {
+  [data-r='cookie'] {
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 88px !important;
+    width: auto !important;
+    max-width: none !important;
+    padding: 20px !important;
+    gap: 14px !important;
+  }
+  [data-r='cookie'] span {
+    font-size: 14px !important;
+  }
+  [data-r='cookiebtns'] button {
+    flex: 1 1 0;
+    height: 44px !important;
+    padding: 0 16px !important;
+    font-size: 14px !important;
   }
 }

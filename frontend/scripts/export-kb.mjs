@@ -199,20 +199,12 @@ line(
     'working day.'
 );
 
-// The site states two different office addresses, so this one is a judgement call
-// rather than a transcription.
-//
-//   src/pages/Contact.jsx  1015-1016, Ambadeep Building, 14 Kasturba Gandhi Marg
-//   src/data/site.js       808, Arunachal Building, Barakhamba Road
-//
-// Ambadeep is used here because it has two independent references that agree — the
-// address shown on the Contact page and the Google Maps link beside it — plus a
-// corroborating "nearest metro: Barakhamba Road", which is likely what the site.js
-// value confused for the street. site.js is still wrong and still feeds the footer;
-// fixing it is a site change, not a corpus change.
+// Same address as src/data/site.js (ADDRESS), which the footer, Contact page and
+// Privacy Policy all show. The site once also showed "1015-1016, Ambadeep
+// Building, 14 Kasturba Gandhi Marg" on the Contact page; that was retired.
 section('Visiting the office');
 line(
-  '1015-1016, Ambadeep Building, 14 Kasturba Gandhi Marg, Connaught Place, New Delhi 110001. Nearest metro: Barakhamba Road.'
+  '808, Arunachal Building, Barakhamba Road, Connaught Place, New Delhi 110001. Nearest metro: Barakhamba Road.'
 );
 line('');
 line('Office hours for walk-ins:');

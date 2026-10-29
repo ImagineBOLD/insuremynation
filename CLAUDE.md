@@ -50,7 +50,14 @@ reads `grecaptcha`. A pull that restores it brings the badge back; delete it aga
 `gtag` (`AW-16945755026`) and a Meta Pixel (`452243449957607`), each GTM with a
 `<noscript>` twin in the body. Three containers on one page is more likely a duplicate than
 a plan — ask whoever runs the ad accounts before adding a fourth or removing one, and expect
-pulls to touch this block. Everything below them (the font preconnect/preload, the
+pulls to touch this block. **Those tags are consent-gated:** each is marked
+`type="text/plain" data-consent` (the gtag loader carries its URL in `data-src`) and stays inert
+until the visitor clicks "Accept all" in `src/components/CookieBanner.jsx`. The `window.imnConsent`
+script after the Meta Pixel then runs them, and on later visits it runs them straight away
+(choice in `localStorage['imn-cookie-consent']`, `all` or `essential`). The Privacy Policy promises
+exactly this, so a pull that brings a tag back as a plain `<script>` breaks that promise: re-mark it.
+The `<noscript>` twins in the body are not gated; a visitor without JS cannot see the banner.
+Everything below them (the font preconnect/preload, the
 conditional `landing-hero.webp` preload on `/`) is performance work; leave it.
 
 ## Commands
@@ -97,9 +104,11 @@ reshapes it through `[data-r="..."]` media queries. That structure is kept intac
   targeting `data-r` attribute names, reproduced verbatim from the design.
 - All pages share one CSS bundle, and several `data-r` names mean **different things per
   page** (`badge`, `srow`, `stitle`, `cimg`, `cgrid`). Page-specific media-query blocks are
-  therefore scoped by a root class on each page: `.p-landing`, `.p-about`, `.p-sub`, plus
-  `.p-sub[data-product="health"]` and `.p-sub[data-page="contact"]`. When adding a `data-r`
-  name, check `global.css` for collisions with other pages.
+  therefore scoped by a root class on each page: `.p-landing`, `.p-about`, `.p-sub`, `.p-legal`
+  (the Privacy Policy, which is not from the handoff), plus `.p-sub[data-product="health"]` and
+  `.p-sub[data-page="contact"]`. When adding a `data-r` name, check `global.css` for collisions
+  with other pages. Shared components rendered on several page types have their rules
+  scoped with `:is(...)`, e.g. the `Testimonials` rail (home + About) and `TalkToExperts`.
 - `src/styles/components.css` holds hover/focus states the prototype expressed inline.
 
 ### Routing and data
@@ -239,10 +248,3 @@ for whoever removes or revives them). It holds no credential.
 them, and no file in this repo can reach the chat any more.** What the assistant knows is
 configured on the widget provider's side. After a site copy change, re-run the script and hand
 the corpus to whoever owns the widget's knowledge base; nothing picks it up alone.
-
-## Known content bug
-
-`frontend/src/data/site.js` and `frontend/src/pages/Contact.jsx` state **different office
-addresses** (Arunachal Building / Barakhamba Road vs Ambadeep Building / Kasturba Gandhi
-Marg), so the live site shows both. The knowledge base uses the Contact page's, which has
-two corroborating references. `site.js` still needs fixing.
